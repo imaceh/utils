@@ -1249,11 +1249,6 @@ namespace es.dmoreno.utils.dataaccess.db
 
             result = field_info.FieldName + " " + this._connector.getTypeString(field_info.Type, field_info.Size);
 
-            //if (field_info.IsPrimaryKey && !without_pk)
-            //{
-            //    result += " PRIMARY KEY";
-            //}
-
             if (field_info.IsAutoincrement && (field_info.Type == ParamType.Int16 || field_info.Type == ParamType.Int32 || field_info.Type == ParamType.Int64))
             {
                 result += " AUTO_INCREMENT";
@@ -1265,10 +1260,6 @@ namespace es.dmoreno.utils.dataaccess.db
                 {
                     result += " NOT NULL";
                 }
-                //else
-                //{
-                //    result += " NULL";
-                //}
             }
 
             if (field_info.DefaultValue != null)
