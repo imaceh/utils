@@ -1431,60 +1431,21 @@ namespace es.dmoreno.utils.dataaccess.db
                 }
 
                 await this.executeNonQueryAsync(sql);
-            }
 
-            //Obtain primaries keys from table
-            pks_at_table = new List<string>();
-            sql = "DESC " + table_att.Name;
-            ds = await this.executeAsync(sql);
-            while (ds.next())
-            {
-                if (ds.getString("Key").Equals("PRI"))
+                //Obtain new primary keys from data structure
+                foreach (PropertyInfo item in t.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
                 {
-                    pks_at_table.Add(ds.getString("Field"));
-                }
-
-                if (ds.getString("Extra").Contains("auto_increment"))
-                {
-                    autoincrement_field = ds.getString("Field");
-                }
-            }
-
-            //Obtain new primary keys from data structure
-            foreach (PropertyInfo item in t.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
-            {
-                field_att = item.GetCustomAttribute<FieldAttribute>();
-                if (field_att != null)
-                {
-                    if (field_att.IsPrimaryKey)
+                    field_att = item.GetCustomAttribute<FieldAttribute>();
+                    if (field_att != null)
                     {
-                        pks.Add(field_att);
+                        if (field_att.IsPrimaryKey)
+                        {
+                            pks.Add(field_att);
+                        }
                     }
                 }
-            }
 
-            //Compare pk from target in source
-            if (pks_at_table.Count == pks.Count)
-            {
-                create_new_pks = false;
-                foreach (FieldAttribute item in pks)
-                {
-                    if (!pks_at_table.Contains(item.FieldName))
-                    {
-                        create_new_pks = true;
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                create_new_pks = true;
-            }
-
-            if (create_new_pks)
-            {
-                sql = "ALTER TABLE " + table_att.Name + " DROP PRIMARY KEY";
-
+                //Create PK Fields
 
             }
 
