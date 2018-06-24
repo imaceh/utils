@@ -1390,7 +1390,9 @@ namespace es.dmoreno.utils.dataaccess.db
             SQLData ds;
             bool result;
             bool new_table;
+            bool create_new_pks;
             string sql;
+            string autoincrement_field;
 
             result = true;
 
@@ -1433,11 +1435,19 @@ namespace es.dmoreno.utils.dataaccess.db
 
             //Obtain primaries keys from table
             pks_at_table = new List<string>();
-            sql = "SHOW KEYS FROM " + table_att.Name + " WHERE Key_name = 'PRIMARY'";
+            sql = "DESC " + table_att.Name;
             ds = await this.executeAsync(sql);
             while (ds.next())
             {
-                pks_at_table.Add(ds.getString("Column_name"));
+                if (ds.getString("Key").Equals("PRI"))
+                {
+                    pks_at_table.Add(ds.getString("Field"));
+                }
+
+                if (ds.getString("Extra").Contains("auto_increment"))
+                {
+                    autoincrement_field = ds.getString("Field");
+                }
             }
 
             //Obtain new primary keys from data structure
@@ -1454,28 +1464,29 @@ namespace es.dmoreno.utils.dataaccess.db
             }
 
             //Compare pk from target in source
-            if (pks.Count == pks_at_table.Count)
+            if (pks_at_table.Count == pks.Count)
             {
-
+                create_new_pks = false;
+                foreach (FieldAttribute item in pks)
+                {
+                    if (!pks_at_table.Contains(item.FieldName))
+                    {
+                        create_new_pks = true;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                create_new_pks = true;
             }
 
-            //if (pks.Count == 0)
-            //{
-            //    sql += "";
-            //}
-            //else
-            //{
-            //    for (int i = 0; i < pks.Count; i++)
-            //    {
-            //        sql += this.getCreateFieldMySQL(pks[i]);
+            if (create_new_pks)
+            {
+                sql = "ALTER TABLE " + table_att.Name + " DROP PRIMARY KEY";
 
-            //        if (i < pks.Count - 1)
-            //        {
-            //            sql += ", ";
-            //        }
-            //    }
-            //}
-            //sql += ")";
+
+            }
 
             return result;
         }
