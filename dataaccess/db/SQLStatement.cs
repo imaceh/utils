@@ -1385,19 +1385,17 @@ namespace es.dmoreno.utils.dataaccess.db
             T t;
             TableAttributte table_att;
             FieldAttribute field_att;
-            List<FieldAttribute> pks;
-            List<string> pks_at_table;
+            List<string> pks;
             SQLData ds;
             bool result;
             bool new_table;
-            bool create_new_pks;
             string sql;
-            string autoincrement_field;
+            string pk_statement;
 
             result = true;
 
             t = new T();
-            pks = new List<FieldAttribute>();
+            pks = new List<string>();
 
             //check if table exists
             table_att = t.GetType().GetTypeInfo().GetCustomAttribute<TableAttributte>();
@@ -1415,7 +1413,7 @@ namespace es.dmoreno.utils.dataaccess.db
                 new_table = true;
             }
 
-            //if not exists create a table empty
+            //if not exists create a table empty with primary key
             if (new_table)
             {
                 sql = "CREATE TABLE " + table_att.Name + " ( _auto_created INT DEFAULT NULL) ";
@@ -1433,6 +1431,8 @@ namespace es.dmoreno.utils.dataaccess.db
                 await this.executeNonQueryAsync(sql);
 
                 //Obtain new primary keys from data structure
+                pk_statement = "ALTER TABLE " + table_att.Name + " ADD CONSTRAINT pk_" + table_att.Name + " PRIMARY KEY (";
+
                 foreach (PropertyInfo item in t.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
                 {
                     field_att = item.GetCustomAttribute<FieldAttribute>();
@@ -1440,13 +1440,20 @@ namespace es.dmoreno.utils.dataaccess.db
                     {
                         if (field_att.IsPrimaryKey)
                         {
-                            pks.Add(field_att);
+                            pks.Add(field_att.FieldName);
+
+                            sql = "ALTER TABLE " + table_att.Name + " ADD COLUMN " + this.getCreateFieldMySQL(field_att);
+                            await this.executeNonQueryAsync(sql);
                         }
                     }
                 }
 
-                //Create PK Fields
-
+                //Create PK 
+                if (pks.Count > 0)
+                {
+                    pk_statement += Utils.buildInString(pks.ToArray()) + ")";
+                    await this.executeNonQueryAsync(pk_statement);
+                }
             }
 
             return result;

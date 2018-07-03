@@ -10,9 +10,9 @@ namespace es.dmoreno.utils.dataaccess.db
     public class FieldAttribute : Attribute
     {
         public string FieldName { get; set; }
-        public bool AllowNull { get; set; }
-        public bool IsPrimaryKey { get; set; }
-        public bool IsAutoincrement { get; set; }
+        public bool AllowNull { get; set; } = false;
+        public bool IsPrimaryKey { get; set; } = false;
+        public bool IsAutoincrement { get; set; } = false;
         public ParamType Type { get; set; }
         public int[] Size { get; set; }
         public object DefaultValue { get; set; }
