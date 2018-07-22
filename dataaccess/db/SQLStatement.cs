@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -1398,7 +1399,7 @@ namespace es.dmoreno.utils.dataaccess.db
             TableAttributte table_att;
             FieldAttribute field_att;
             List<string> pks;
-            SQLData ds;
+            List<DescRow> desc_table;
             bool result;
             bool new_table;
             string sql;
@@ -1466,18 +1467,23 @@ namespace es.dmoreno.utils.dataaccess.db
                     pk_statement += Utils.buildInString(pks.ToArray()) + ")";
                     await this.executeNonQueryAsync(pk_statement);
                 }
+            }
 
-                //Create new fields
-                foreach (PropertyInfo item in t.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            desc_table = await this.DescAsync<T>();
+
+            //Create new fields
+            foreach (PropertyInfo item in t.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            {
+                field_att = item.GetCustomAttribute<FieldAttribute>();
+                if (field_att != null)
                 {
-                    field_att = item.GetCustomAttribute<FieldAttribute>();
-                    if (field_att != null)
+                    //if no exists then will be created
+                    if (desc_table.Where(f => f.Field == field_att.FieldName).Count() == 0)
                     {
-                        
-
+                        sql = "ALTER TABLE " + table_att.Name + " ADD COLUMN " + this.getCreateFieldMySQL(field_att);
+                        await this.executeNonQueryAsync(sql);
                     }
                 }
-
             }
 
             return result;
