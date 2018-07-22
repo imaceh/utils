@@ -1250,10 +1250,10 @@ namespace es.dmoreno.utils.dataaccess.db
 
             result = field_info.FieldName + " " + this._connector.getTypeString(field_info.Type, field_info.Size);
 
-            if (field_info.IsAutoincrement && (field_info.Type == ParamType.Int16 || field_info.Type == ParamType.Int32 || field_info.Type == ParamType.Int64))
-            {
-                result += " AUTO_INCREMENT";
-            }
+            //if (field_info.IsAutoincrement && (field_info.Type == ParamType.Int16 || field_info.Type == ParamType.Int32 || field_info.Type == ParamType.Int64))
+            //{
+            //    result += " AUTO_INCREMENT";
+            //}
 
             if (!field_info.IsPrimaryKey || (field_info.IsPrimaryKey && without_pk))
             {
@@ -1398,6 +1398,7 @@ namespace es.dmoreno.utils.dataaccess.db
             T t;
             TableAttributte table_att;
             FieldAttribute field_att;
+            FieldAttribute field_att_autoincrement;
             List<string> pks;
             List<DescRow> desc_table;
             bool result;
@@ -1409,6 +1410,7 @@ namespace es.dmoreno.utils.dataaccess.db
 
             t = new T();
             pks = new List<string>();
+            field_att_autoincrement = null;
 
             //check if table exists
             table_att = t.GetType().GetTypeInfo().GetCustomAttribute<TableAttributte>();
@@ -1455,6 +1457,11 @@ namespace es.dmoreno.utils.dataaccess.db
                         {
                             pks.Add(field_att.FieldName);
 
+                            if (field_att.IsAutoincrement && field_att_autoincrement == null)
+                            {
+                                field_att_autoincrement = field_att;
+                            }
+
                             sql = "ALTER TABLE " + table_att.Name + " ADD COLUMN " + this.getCreateFieldMySQL(field_att);
                             await this.executeNonQueryAsync(sql);
                         }
@@ -1466,6 +1473,12 @@ namespace es.dmoreno.utils.dataaccess.db
                 {
                     pk_statement += Utils.buildInString(pks.ToArray()) + ")";
                     await this.executeNonQueryAsync(pk_statement);
+
+                    if (field_att_autoincrement != null)
+                    {
+                        sql = "ALTER TABLE " + table_att.Name + " MODIFY COLUMN " + this.getCreateFieldMySQL(field_att_autoincrement) + " AUTO_INCREMENT";
+                        await this.executeNonQueryAsync(sql);
+                    }
                 }
             }
 
