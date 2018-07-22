@@ -1381,7 +1381,7 @@ namespace es.dmoreno.utils.dataaccess.db
             return result;
         }
 
-        public async Task<List<DescRow>> DescAsync<T>() where T : class, new()
+        public async Task<List<DescRow>> descTableAsync<T>() where T : class, new()
         {
             SQLData data;
             TableAttributte table_att;
@@ -1393,16 +1393,41 @@ namespace es.dmoreno.utils.dataaccess.db
             return data.fillToList<DescRow>();
         }
 
+        private List<FieldAttribute> getPrimariesKeys<T>() where T : class, new()
+        {
+            FieldAttribute field_att;
+            List<FieldAttribute> result;
+
+            result = new List<FieldAttribute>();
+
+            foreach (PropertyInfo item in new T().GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            {
+                field_att = item.GetCustomAttribute<FieldAttribute>();
+
+                if (field_att.IsPrimaryKey)
+                {
+                    result.Add(field_att);
+                }
+            }
+
+            return result;
+        }
+
         private async Task<bool> createUpdateTableMySQLAsync<T>() where T : class, new()
         {
             T t;
+            List<FieldAttribute> pks_from_T;
             TableAttributte table_att;
             FieldAttribute field_att;
             FieldAttribute field_att_autoincrement;
             List<string> pks;
             List<DescRow> desc_table;
+            List<DescRow> pks_original;
+            List<DescRow> pks_original_w_autoincrement;
             bool result;
             bool new_table;
+            bool new_pk;
+            bool add_autoinc;
             string sql;
             string pk_statement;
 
@@ -1428,9 +1453,9 @@ namespace es.dmoreno.utils.dataaccess.db
                 new_table = true;
             }
 
-            //if not exists create a table empty with primary key
             if (new_table)
             {
+                //if not exists create a table empty with primary key            
                 sql = "CREATE TABLE " + table_att.Name + " ( _auto_created INT DEFAULT NULL) ";
 
                 switch (table_att.Type)
@@ -1444,47 +1469,11 @@ namespace es.dmoreno.utils.dataaccess.db
                 }
 
                 await this.executeNonQueryAsync(sql);
-
-                //Obtain new primary keys from data structure
-                pk_statement = "ALTER TABLE " + table_att.Name + " ADD CONSTRAINT pk_" + table_att.Name + " PRIMARY KEY (";
-
-                foreach (PropertyInfo item in t.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
-                {
-                    field_att = item.GetCustomAttribute<FieldAttribute>();
-                    if (field_att != null)
-                    {
-                        if (field_att.IsPrimaryKey)
-                        {
-                            pks.Add(field_att.FieldName);
-
-                            if (field_att.IsAutoincrement && field_att_autoincrement == null)
-                            {
-                                field_att_autoincrement = field_att;
-                            }
-
-                            sql = "ALTER TABLE " + table_att.Name + " ADD COLUMN " + this.getCreateFieldMySQL(field_att);
-                            await this.executeNonQueryAsync(sql);
-                        }
-                    }
-                }
-
-                //Create PK 
-                if (pks.Count > 0)
-                {
-                    pk_statement += Utils.buildInString(pks.ToArray()) + ")";
-                    await this.executeNonQueryAsync(pk_statement);
-
-                    if (field_att_autoincrement != null)
-                    {
-                        sql = "ALTER TABLE " + table_att.Name + " MODIFY COLUMN " + this.getCreateFieldMySQL(field_att_autoincrement) + " AUTO_INCREMENT";
-                        await this.executeNonQueryAsync(sql);
-                    }
-                }
             }
 
-            desc_table = await this.DescAsync<T>();
-
             //Create new fields
+            desc_table = await this.descTableAsync<T>();
+
             foreach (PropertyInfo item in t.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
                 field_att = item.GetCustomAttribute<FieldAttribute>();
@@ -1495,6 +1484,98 @@ namespace es.dmoreno.utils.dataaccess.db
                     {
                         sql = "ALTER TABLE " + table_att.Name + " ADD COLUMN " + this.getCreateFieldMySQL(field_att);
                         await this.executeNonQueryAsync(sql);
+                    }
+                }
+            }
+
+            //Compare PKs
+            pks_original = desc_table.Where(r => r.Key == "PRI").ToList();
+            pks_from_T = this.getPrimariesKeys<T>();
+
+            new_pk = pks_original.Count != pks_from_T.Count;
+
+            if (!new_pk)
+            {
+                foreach (DescRow item in pks_original)
+                {
+                    if (pks_from_T.Where(f => f.FieldName == item.Field).Count() == 0)
+                    {
+                        new_pk = true;
+                        break;
+                    }
+                }
+            }
+
+            pks_original_w_autoincrement = pks_original.Where(f => f.Extra.Contains("auto_increment")).ToList();
+
+            //Remove AUTO_INCREMENT field
+            if (pks_original_w_autoincrement.Count > 0)
+            {
+                if (pks_from_T.Where(f => pks_original_w_autoincrement[0].Field == f.FieldName).Count() == 0)
+                {
+                    add_autoinc = true;
+
+                    sql = "ALTER TABLE " + table_att.Name + " MODIFY COLUMN " + pks_original_w_autoincrement[0].Field + " " + pks_original_w_autoincrement[0].Type;
+                    if (pks_original_w_autoincrement[0].Null == "NO")
+                    {
+                        sql += " NOT ";
+                    }
+                    sql += " NULL";
+                    if (pks_original_w_autoincrement[0].Default != null)
+                    {
+                        sql += " DEFAULT '" + pks_original_w_autoincrement[0].Default + "'";
+                    }
+
+                    await this.executeNonQueryAsync(sql);
+                }
+                else
+                {
+                    add_autoinc = false;
+                }
+            }
+            else
+            {
+                add_autoinc = true;
+            }
+
+            if (new_pk)
+            {               
+                if (pks_original.Count > 0)
+                {
+                    sql = "ALTER TABLE " + table_att.Name + " DROP PRIMARY KEY";
+                    await this.executeNonQueryAsync(sql);
+                }
+
+                if (pks_from_T.Count > 0)
+                {
+                    sql = "ALTER TABLE " + table_att.Name + " ADD CONSTRAINT pk_" + table_att.Name + " PRIMARY KEY (";
+                    for (int i = 0; i < pks_from_T.Count; i++)
+                    {
+                        sql += pks_from_T[i].FieldName;
+
+                        if (i < pks_from_T.Count - 1)
+                        {
+                            sql += ", ";
+                        }
+                    }
+                    sql += ")";
+
+                    await this.executeNonQueryAsync(sql);
+                }
+            }
+
+            if (add_autoinc)
+            {
+                foreach (FieldAttribute item in pks_from_T)
+                {
+                    if (item.IsAutoincrement)
+                    {
+                        if (item.isInteger)
+                        {
+                            sql = "ALTER TABLE " + table_att.Name + " MODIFY COLUMN " + this.getCreateFieldMySQL(item) + " AUTO_INCREMENT";
+                            await this.executeNonQueryAsync(sql);
+                        }
+                        break;
                     }
                 }
             }
