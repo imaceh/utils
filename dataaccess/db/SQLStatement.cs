@@ -1511,7 +1511,10 @@ namespace es.dmoreno.utils.dataaccess.db
             //Remove AUTO_INCREMENT field
             if (pks_original_w_autoincrement.Count > 0)
             {
-                if (pks_from_T.Where(f => pks_original_w_autoincrement[0].Field == f.FieldName).Count() == 0)
+                //No same autoincrement field
+                if ((pks_from_T.Where(f => pks_original_w_autoincrement[0].Field == f.FieldName).Count() == 0) ||
+                    //Not exists autoincrement in new schema
+                    (pks_from_T.Where(f => f.IsAutoincrement == true).Count() == 0))
                 {
                     add_autoinc = true;
 
@@ -1579,6 +1582,8 @@ namespace es.dmoreno.utils.dataaccess.db
                     }
                 }
             }
+
+            result = true;
 
             return result;
         }
