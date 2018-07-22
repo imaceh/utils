@@ -1413,13 +1413,40 @@ namespace es.dmoreno.utils.dataaccess.db
             return result;
         }
 
+        private void checkSchemaInMySQL<T>() where T : class, new()
+        {
+            FieldAttribute field_att;
+            int auto_increment_fields = 0;
+
+            foreach (PropertyInfo item in new T().GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            {
+                field_att = item.GetCustomAttribute<FieldAttribute>();
+                if (field_att != null)
+                {
+                    if (field_att.IsAutoincrement)
+                    {
+                        auto_increment_fields++;
+
+                        if (!field_att.isInteger)
+                        {
+                            throw new Exception("Field " + field_att.FieldName + " not is integer field but has enable auto_increment attributte");
+                        }
+                    }
+                }
+            }
+
+            if (auto_increment_fields > 1)
+            {
+                throw new Exception("Only is allowed one auto_increment field");
+            }
+        }
+
         private async Task<bool> createUpdateTableMySQLAsync<T>() where T : class, new()
         {
             T t;
             List<FieldAttribute> pks_from_T;
             TableAttributte table_att;
             FieldAttribute field_att;
-            FieldAttribute field_att_autoincrement;
             List<string> pks;
             List<DescRow> desc_table;
             List<DescRow> pks_original;
@@ -1429,13 +1456,13 @@ namespace es.dmoreno.utils.dataaccess.db
             bool new_pk;
             bool add_autoinc;
             string sql;
-            string pk_statement;
+
+            this.checkSchemaInMySQL<T>();
 
             result = true;
 
             t = new T();
             pks = new List<string>();
-            field_att_autoincrement = null;
 
             //check if table exists
             table_att = t.GetType().GetTypeInfo().GetCustomAttribute<TableAttributte>();
@@ -1453,9 +1480,9 @@ namespace es.dmoreno.utils.dataaccess.db
                 new_table = true;
             }
 
+            //if not exists create a table empty with primary key            
             if (new_table)
-            {
-                //if not exists create a table empty with primary key            
+            {                
                 sql = "CREATE TABLE " + table_att.Name + " ( _auto_created INT DEFAULT NULL) ";
 
                 switch (table_att.Type)
@@ -1488,7 +1515,7 @@ namespace es.dmoreno.utils.dataaccess.db
                 }
             }
 
-            //Compare PKs
+            //Compare PKs for decide if will be update PK constraint
             pks_original = desc_table.Where(r => r.Key == "PRI").ToList();
             pks_from_T = this.getPrimariesKeys<T>();
 
@@ -1506,6 +1533,7 @@ namespace es.dmoreno.utils.dataaccess.db
                 }
             }
 
+            //Get actual autoincrement field
             pks_original_w_autoincrement = pks_original.Where(f => f.Extra.Contains("auto_increment")).ToList();
 
             //Remove AUTO_INCREMENT field
@@ -1518,6 +1546,7 @@ namespace es.dmoreno.utils.dataaccess.db
                 {
                     add_autoinc = true;
 
+                    //Remove actual attribute from actual auto_criment field
                     sql = "ALTER TABLE " + table_att.Name + " MODIFY COLUMN " + pks_original_w_autoincrement[0].Field + " " + pks_original_w_autoincrement[0].Type;
                     if (pks_original_w_autoincrement[0].Null == "NO")
                     {
@@ -1541,6 +1570,7 @@ namespace es.dmoreno.utils.dataaccess.db
                 add_autoinc = true;
             }
 
+            //If is necessary create new PK
             if (new_pk)
             {               
                 if (pks_original.Count > 0)
@@ -1567,6 +1597,7 @@ namespace es.dmoreno.utils.dataaccess.db
                 }
             }
 
+            //If is necessary create new autoincrement field
             if (add_autoinc)
             {
                 foreach (FieldAttribute item in pks_from_T)
