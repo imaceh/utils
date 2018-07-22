@@ -1380,6 +1380,18 @@ namespace es.dmoreno.utils.dataaccess.db
             return result;
         }
 
+        public async Task<List<DescRow>> DescAsync<T>() where T : class, new()
+        {
+            SQLData data;
+            TableAttributte table_att;
+            
+            table_att = new T().GetType().GetTypeInfo().GetCustomAttribute<TableAttributte>();
+
+            data = await this.executeAsync("DESC " + table_att.Name);
+            
+            return data.fillToList<DescRow>();
+        }
+
         private async Task<bool> createUpdateTableMySQLAsync<T>() where T : class, new()
         {
             T t;
@@ -1454,6 +1466,18 @@ namespace es.dmoreno.utils.dataaccess.db
                     pk_statement += Utils.buildInString(pks.ToArray()) + ")";
                     await this.executeNonQueryAsync(pk_statement);
                 }
+
+                //Create new fields
+                foreach (PropertyInfo item in t.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+                {
+                    field_att = item.GetCustomAttribute<FieldAttribute>();
+                    if (field_att != null)
+                    {
+                        
+
+                    }
+                }
+
             }
 
             return result;
