@@ -626,7 +626,7 @@ namespace es.dmoreno.utils.dataaccess.db
         {
             ConfigStatement c;
             List<string> fields;
-            TableAttributte table_att;
+            TableAttribute table_att;
             FieldAttribute att;
             object value;
             string aux;
@@ -635,7 +635,7 @@ namespace es.dmoreno.utils.dataaccess.db
             fields = new List<string>();
 
             //Get table attribute from class
-            table_att = registry.GetType().GetTypeInfo().GetCustomAttribute<TableAttributte>();
+            table_att = registry.GetType().GetTypeInfo().GetCustomAttribute<TableAttribute>();
 
             //Get fields attributes from properties
             foreach (PropertyInfo item in registry.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
@@ -698,7 +698,7 @@ namespace es.dmoreno.utils.dataaccess.db
         {
             ConfigStatement c;
             List<string> fields;
-            TableAttributte table_att;
+            TableAttribute table_att;
             FieldAttribute att;
             string aux;
             string aux2;
@@ -711,7 +711,7 @@ namespace es.dmoreno.utils.dataaccess.db
             fields = new List<string>();
 
             //Get table attribute from class
-            table_att = registry.GetType().GetTypeInfo().GetCustomAttribute<TableAttributte>();
+            table_att = registry.GetType().GetTypeInfo().GetCustomAttribute<TableAttribute>();
 
             //Get fields attributes from properties
             foreach (PropertyInfo item in registry.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
@@ -803,7 +803,7 @@ namespace es.dmoreno.utils.dataaccess.db
             ConfigStatement c;
             List<string> fields;
             List<string> fields_pk;
-            TableAttributte table_att;
+            TableAttribute table_att;
             FieldAttribute att;
             object value;
             string aux;
@@ -814,7 +814,7 @@ namespace es.dmoreno.utils.dataaccess.db
             fields_pk = new List<string>();
 
             //Get table attribute from class
-            table_att = registry.GetType().GetTypeInfo().GetCustomAttribute<TableAttributte>();
+            table_att = registry.GetType().GetTypeInfo().GetCustomAttribute<TableAttribute>();
 
             //Get fields attributes from properties
             foreach (PropertyInfo item in registry.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
@@ -898,7 +898,7 @@ namespace es.dmoreno.utils.dataaccess.db
             List<StatementParameter> parameters_pk;
             List<string> fields;
             List<string> fields_pk;
-            TableAttributte table_att;
+            TableAttribute table_att;
             FieldAttribute att;
             string aux;
             string aux2;
@@ -911,7 +911,7 @@ namespace es.dmoreno.utils.dataaccess.db
             parameters_pk = new List<StatementParameter>();
 
             //Get table attribute from class
-            table_att = registry.GetType().GetTypeInfo().GetCustomAttribute<TableAttributte>();
+            table_att = registry.GetType().GetTypeInfo().GetCustomAttribute<TableAttribute>();
 
             //Get fields in SET section from properties
             foreach (PropertyInfo item in registry.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
@@ -1053,14 +1053,14 @@ namespace es.dmoreno.utils.dataaccess.db
         public async Task<bool> emptyTableAsync<T>() where T : class, new()
         {
             T t;
-            TableAttributte table_att;
+            TableAttribute table_att;
             string sql;
             bool result;
 
             t = new T();
 
             //Get table attribute from class
-            table_att = t.GetType().GetTypeInfo().GetCustomAttribute<TableAttributte>();
+            table_att = t.GetType().GetTypeInfo().GetCustomAttribute<TableAttribute>();
             sql = "DELETE FROM {0} WHERE 1 = 1";
             sql = string.Format(sql, table_att.Name);
 
@@ -1384,9 +1384,9 @@ namespace es.dmoreno.utils.dataaccess.db
         public async Task<List<DescRow>> descTableAsync<T>() where T : class, new()
         {
             SQLData data;
-            TableAttributte table_att;
+            TableAttribute table_att;
             
-            table_att = new T().GetType().GetTypeInfo().GetCustomAttribute<TableAttributte>();
+            table_att = new T().GetType().GetTypeInfo().GetCustomAttribute<TableAttribute>();
 
             data = await this.executeAsync("DESC " + table_att.Name);
             
@@ -1445,7 +1445,7 @@ namespace es.dmoreno.utils.dataaccess.db
         {
             T t;
             List<FieldAttribute> pks_from_T;
-            TableAttributte table_att;
+            TableAttribute table_att;
             FieldAttribute field_att;
             List<string> pks;
             List<DescRow> desc_table;
@@ -1465,7 +1465,7 @@ namespace es.dmoreno.utils.dataaccess.db
             pks = new List<string>();
 
             //check if table exists
-            table_att = t.GetType().GetTypeInfo().GetCustomAttribute<TableAttributte>();
+            table_att = t.GetType().GetTypeInfo().GetCustomAttribute<TableAttribute>();
 
             try
             {
@@ -1622,7 +1622,7 @@ namespace es.dmoreno.utils.dataaccess.db
         private async Task<bool> createUpdateTableSQLiteAsync<T>() where T : class, new()
         {
             T t;
-            TableAttributte table_att;
+            TableAttribute table_att;
             FieldAttribute field_att;
             List<FieldAttribute> pks;
             bool result;
@@ -1635,7 +1635,7 @@ namespace es.dmoreno.utils.dataaccess.db
             pks = new List<FieldAttribute>();
 
             //Check if table exists
-            table_att = t.GetType().GetTypeInfo().GetCustomAttribute<TableAttributte>();
+            table_att = t.GetType().GetTypeInfo().GetCustomAttribute<TableAttribute>();
 
             try
             {
