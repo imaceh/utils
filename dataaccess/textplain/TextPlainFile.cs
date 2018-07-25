@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace es.dmoreno.utils.dataaccess.textplain
 {
@@ -33,14 +34,46 @@ namespace es.dmoreno.utils.dataaccess.textplain
             else
             {
                 result = (this._fs = new FileStream(this._filename, FileMode.OpenOrCreate)) != null;
-
-                if (result)
-                {
-
-                }
             }
 
             return result;
+        }
+
+        public async Task<string> getAsync()
+        {
+            string txt;
+            string line;
+
+            if (this._fs == null)
+            {
+                throw new IOException("File " + this._filename + " is not open");
+            }
+
+            using (StreamReader sr = new StreamReader(this._fs))
+            {
+                this._fs.Position = 0;
+                txt = "";
+
+                while ((line = await sr.ReadLineAsync()) != null)
+                {
+                    txt += line;
+                }
+            }
+
+            return txt;
+        }
+
+        public async Task set(string text)
+        {
+            if (this._fs == null)
+            {
+                throw new IOException("File " + this._filename + " is not open");
+            }
+
+            using (StreamWriter sw = new StreamWriter(this._fs))
+            {
+                await sw.WriteAsync(text);
+            }
         }
     }
 }
