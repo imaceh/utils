@@ -26,7 +26,7 @@ namespace es.dmoreno.utils.dataaccess.textplain
                 this._fs.Dispose();
             }
 
-            if (!File.Exists(this._filename))
+            if (File.Exists(this._filename))
             {
                 result = false;
             }
