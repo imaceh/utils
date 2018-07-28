@@ -1,7 +1,11 @@
-﻿using Microsoft.Data.Sqlite;
+﻿/*
+* 29/07/2018: Resolve error when use SQLite database and her state is locked (https://github.com/aspnet/Microsoft.Data.Sqlite/issues/474)
+*/
+using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -19,6 +23,8 @@ namespace es.dmoreno.utils.dataaccess.db
             public string SELECT { get; set; }
             public List<StatementParameter> Params { get; set; }
         }
+
+        private const int kMaxTimeWaitUnlock = 30000;
 
         public string LastError { get; internal set; }
 
@@ -203,19 +209,39 @@ namespace es.dmoreno.utils.dataaccess.db
 
         #endregion
 
+        static private bool isBusySQLite(int code)
+        {
+            return (code == SQLitePCL.raw.SQLITE_BUSY) || (code == SQLitePCL.raw.SQLITE_LOCKED) || (code == SQLitePCL.raw.SQLITE_LOCKED_SHAREDCACHE);
+        }
+
         public SQLData execute(string sql)
         {
+            bool completed = false;
             this.finalizeSqlData();
             this.createCommand();
             this._command.CommandText = sql;
-            try
+
+            var stopwatch = Stopwatch.StartNew();
+            while (!completed)
             {
-                this._datareader = this._command.ExecuteReader();
-            }
-            catch (Exception ex)
-            {
-                this.LastError = ex.Message;
-                throw ex;
+                try
+                {
+                    this._datareader = this._command.ExecuteReader();
+                    completed = true;
+                }
+                catch (SqliteException ex)
+                {
+                    if (!isBusySQLite(ex.SqliteErrorCode) || stopwatch.ElapsedMilliseconds > kMaxTimeWaitUnlock)
+                    {
+                        this.LastError = ex.Message;
+                        throw ex;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    this.LastError = ex.Message;
+                    throw ex;
+                }
             }
             SQLData d = new SQLData(this._datareader, this._command, this);
             this._result_data = d;
@@ -225,18 +251,34 @@ namespace es.dmoreno.utils.dataaccess.db
 
         public async Task<SQLData> executeAsync(string sql)
         {
+            bool completed = false;
             this.finalizeSqlData();
             this.createCommand();
             this._command.CommandText = sql;
-            try
+
+            var stopwatch = Stopwatch.StartNew();
+            while (!completed)
             {
-                this._datareader = await this._command.ExecuteReaderAsync();
+                try
+                {
+                    this._datareader = await this._command.ExecuteReaderAsync();
+                    completed = true;
+                }
+                catch (SqliteException ex)
+                {
+                    if (!isBusySQLite(ex.SqliteErrorCode) || stopwatch.ElapsedMilliseconds > kMaxTimeWaitUnlock)
+                    {
+                        this.LastError = ex.Message;
+                        throw ex;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    this.LastError = ex.Message;
+                    throw ex;
+                }
             }
-            catch (Exception ex)
-            {
-                this.LastError = ex.Message;
-                throw ex;
-            }
+
             SQLData d = new SQLData(this._datareader, this._command, this);
             this._result_data = d;
             this.empty();
@@ -245,39 +287,70 @@ namespace es.dmoreno.utils.dataaccess.db
 
         public int executeNonQuery(string sql)
         {
-            int resultado;
+            bool completed = false;
+            int resultado = 0;
 
             this.finalizeSqlData();
             this.createCommand();
             this._command.CommandText = sql;
-            try
+
+            var stopwatch = Stopwatch.StartNew();
+            while (!completed)
             {
-                resultado = this._command.ExecuteNonQuery();
+                try
+                {
+                    resultado = this._command.ExecuteNonQuery();
+                    completed = true;
+                }
+                catch (SqliteException ex)
+                {
+                    if (!isBusySQLite(ex.SqliteErrorCode) || stopwatch.ElapsedMilliseconds > kMaxTimeWaitUnlock)
+                    {
+                        this.LastError = ex.Message;
+                        throw ex;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    this.LastError = ex.Message;
+                    throw ex;
+                }
             }
-            catch (Exception ex)
-            {
-                this.LastError = ex.Message;
-                throw ex;
-            }
+
             this.empty();
             return resultado;
         }
 
         public async Task<int> executeNonQueryAsync(string sql)
         {
-            int resultado;
+            bool completed = false;
+            int resultado = 0;
 
             this.finalizeSqlData();
             this.createCommand();
             this._command.CommandText = sql;
-            try
+
+            var stopwatch = Stopwatch.StartNew();
+            while (!completed)
             {
-                resultado = await this._command.ExecuteNonQueryAsync();
-            }
-            catch (Exception ex)
-            {
-                this.LastError = ex.Message;
-                throw ex;
+                try
+                {
+                    resultado = await this._command.ExecuteNonQueryAsync();
+                    completed = true;
+                }
+                catch (SqliteException ex)
+                {
+                    if (!isBusySQLite(ex.SqliteErrorCode) || stopwatch.ElapsedMilliseconds > kMaxTimeWaitUnlock)
+                    {
+                        this.LastError = ex.Message;
+                        throw ex;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    this.LastError = ex.Message;
+                    throw ex;
+                }
             }
 
             this.empty();
