@@ -26,19 +26,37 @@ namespace es.dmoreno.utils.dataaccess.textplain
                 this._fs.Dispose();
             }
 
-            if (File.Exists(this._filename))
-            {
-                result = false;
-            }
-            else
-            {
-                result = (this._fs = new FileStream(this._filename, FileMode.OpenOrCreate)) != null;
-            }
+            result = (this._fs = new FileStream(this._filename, FileMode.OpenOrCreate)) != null;
 
             return result;
         }
 
-        public async Task<string> getAsync()
+        //public async Task<string> getAsync()
+        //{
+        //    string txt;
+        //    string line;
+
+        //    if (this._fs == null)
+        //    {
+        //        throw new IOException("File " + this._filename + " is not open");
+        //    }
+
+        //    this._fs.Position = 0;
+
+        //    using (StreamReader sr = new StreamReader(this._fs))
+        //    {                
+        //        txt = "";
+
+        //        while ((line = await sr.ReadLineAsync()) != null)
+        //        {
+        //            txt += line;
+        //        }
+        //    }
+
+        //    return txt;
+        //}
+
+        public string get()
         {
             string txt;
             string line;
@@ -48,12 +66,13 @@ namespace es.dmoreno.utils.dataaccess.textplain
                 throw new IOException("File " + this._filename + " is not open");
             }
 
+            this._fs.Position = 0;
+
             using (StreamReader sr = new StreamReader(this._fs))
             {
-                this._fs.Position = 0;
                 txt = "";
 
-                while ((line = await sr.ReadLineAsync()) != null)
+                while ((line = sr.ReadLine()) != null)
                 {
                     txt += line;
                 }
@@ -62,7 +81,7 @@ namespace es.dmoreno.utils.dataaccess.textplain
             return txt;
         }
 
-        public async Task set(string text)
+        public void set(string text)
         {
             if (this._fs == null)
             {
@@ -71,7 +90,7 @@ namespace es.dmoreno.utils.dataaccess.textplain
 
             using (StreamWriter sw = new StreamWriter(this._fs))
             {
-                await sw.WriteAsync(text);
+                sw.Write(text);
             }
         }
 
