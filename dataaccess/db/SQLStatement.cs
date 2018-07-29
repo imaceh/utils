@@ -1387,11 +1387,6 @@ namespace es.dmoreno.utils.dataaccess.db
 
             result = field_info.FieldName + " " + this.getTypeSQLiteString(field_info.Type);
 
-            if (field_info.IsPrimaryKey && !without_pk)
-            {
-                result += " PRIMARY KEY";
-            }
-
             if (field_info.IsAutoincrement && (field_info.Type == ParamType.Int16 || field_info.Type == ParamType.Int32 || field_info.Type == ParamType.Int64))
             {
                 result += " AUTOINCREMENT";
@@ -1403,10 +1398,6 @@ namespace es.dmoreno.utils.dataaccess.db
                 {
                     result += " NOT NULL";
                 }
-                //else
-                //{
-                //    result += " NULL";
-                //}
             }
 
             if (field_info.DefaultValue != null)
@@ -1746,13 +1737,20 @@ namespace es.dmoreno.utils.dataaccess.db
                 {
                     for (int i = 0; i < pks.Count; i++)
                     {
-                        sql += this.getCreateFieldSQLite(pks[i]);
+                        sql += this.getCreateFieldSQLite(pks[i]) + ", ";
+                    }
+
+                    sql += " PRIMARY KEY (";
+                    for (int i = 0; i < pks.Count; i++)
+                    {
+                        sql += pks[i].FieldName;
 
                         if (i < pks.Count - 1)
                         {
                             sql += ", ";
                         }
                     }
+                    sql += ")";
                 }
                 sql += ")";
 
