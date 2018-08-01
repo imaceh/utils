@@ -1381,7 +1381,7 @@ namespace es.dmoreno.utils.dataaccess.db
             return result;
         }
 
-        private string getCreateFieldSQLite(FieldAttribute field_info, bool without_pk = false)
+        internal string getCreateFieldSQLite(FieldAttribute field_info, bool without_pk = false)
         {
             string result;
 
