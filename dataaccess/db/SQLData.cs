@@ -234,155 +234,198 @@ namespace es.dmoreno.utils.dataaccess.db
                 return this.getDecimal(field);
         }
 
-        public T fill<T>(T reg = null) where T : class, new()
+        private List<PropertyInfo> getPropertyInfos<T>(T reg, bool with_fieldattribute = false) where T : class, new()
         {
-            T registry;
-            FieldAttribute att;
+            List<PropertyInfo> result;
 
-            if (reg == null)
+            var properties = reg.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+            result = new List<PropertyInfo>(properties.Length);
+
+            foreach (var item in properties)
             {
-                registry = new T();
-            }
-            else
-            {
-                registry = reg;
+                if (with_fieldattribute)
+                {
+                    var att = item.GetCustomAttribute<FieldAttribute>();
+
+                    if (att != null)
+                    {
+                        result.Add(item);
+                    }
+                }
+                else
+                {
+                    result.Add(item);
+                }
             }
 
-            foreach (PropertyInfo item in registry.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            return result;
+        }
+
+        private List<FieldAttribute> getFieldAttributes(List<PropertyInfo> p)
+        {
+            var result = new List<FieldAttribute>(p.Count);
+
+            foreach (var item in p)
             {
-                att = item.GetCustomAttribute<FieldAttribute>();
+                var att = item.GetCustomAttribute<FieldAttribute>();
 
                 if (att != null)
                 {
-                    if (att.Type == ParamType.Boolean)
+                    result.Add(att);
+                }
+            }
+            
+            return result;
+        }
+
+        private T fill<T>(List<PropertyInfo> p, List<FieldAttribute> a = null) where T : class, new()
+        {
+            var registry = new T();
+
+            List<FieldAttribute> attributes;
+            if (a == null)
+            {
+                attributes = this.getFieldAttributes(p);
+            }
+            else
+            {
+                attributes = a;
+            }
+
+            for (int i = 0; i < p.Count; i++)
+            {
+                var item = p[i];
+                var att = attributes[i];
+
+                if (att.Type == ParamType.Boolean)
+                {
+                    if (att.AllowNull)
                     {
-                        if (att.AllowNull)
+                        if (this.isNull(att.FieldName))
                         {
-                            if (this.isNull(att.FieldName))
-                            {
-                                item.SetValue(registry, false);
-                            }
-                            else
-                            {
-                                item.SetValue(registry, this.getBool(att.FieldName));
-                            }
+                            item.SetValue(registry, false);
                         }
                         else
                         {
                             item.SetValue(registry, this.getBool(att.FieldName));
                         }
                     }
-                    else if (att.Type == ParamType.DateTime)
+                    else
                     {
-                        if (att.AllowNull)
+                        item.SetValue(registry, this.getBool(att.FieldName));
+                    }
+                }
+                else if (att.Type == ParamType.DateTime)
+                {
+                    if (att.AllowNull)
+                    {
+                        if (this.isNull(att.FieldName))
                         {
-                            if (this.isNull(att.FieldName))
-                            {
-                                item.SetValue(registry, null);
-                            }
-                            else
-                            {
-                                item.SetValue(registry, this.getDateTime(att.FieldName));
-                            }
+                            item.SetValue(registry, null);
                         }
                         else
                         {
                             item.SetValue(registry, this.getDateTime(att.FieldName));
                         }
                     }
-                    else if (att.Type == ParamType.ByteArray)
+                    else
                     {
-                        throw new Exception("Parameter type ByteArray is not supported");
+                        item.SetValue(registry, this.getDateTime(att.FieldName));
                     }
-                    else if (att.Type == ParamType.Decimal)
+                }
+                else if (att.Type == ParamType.ByteArray)
+                {
+                    throw new Exception("Parameter type ByteArray is not supported");
+                }
+                else if (att.Type == ParamType.Decimal)
+                {
+                    if (att.AllowNull)
                     {
-                        if (att.AllowNull)
+                        if (this.isNull(att.FieldName))
                         {
-                            if (this.isNull(att.FieldName))
-                            {
-                                item.SetValue(registry, 0);
-                            }
-                            else
-                            {
-                                item.SetValue(registry, this.getDecimal(att.FieldName));
-                            }
+                            item.SetValue(registry, 0);
                         }
                         else
                         {
                             item.SetValue(registry, this.getDecimal(att.FieldName));
                         }
                     }
-                    else if (att.Type == ParamType.Int16)
+                    else
                     {
-                        if (att.AllowNull)
+                        item.SetValue(registry, this.getDecimal(att.FieldName));
+                    }
+                }
+                else if (att.Type == ParamType.Int16)
+                {
+                    if (att.AllowNull)
+                    {
+                        if (this.isNull(att.FieldName))
                         {
-                            if (this.isNull(att.FieldName))
-                            {
-                                item.SetValue(registry, att.NullValueForInt);
-                            }
-                            else
-                            {
-                                item.SetValue(registry, this.getInt16(att.FieldName));
-                            }
+                            item.SetValue(registry, att.NullValueForInt);
                         }
                         else
                         {
                             item.SetValue(registry, this.getInt16(att.FieldName));
                         }
                     }
-                    else if (att.Type == ParamType.Int32)
+                    else
                     {
-                        if (att.AllowNull)
+                        item.SetValue(registry, this.getInt16(att.FieldName));
+                    }
+                }
+                else if (att.Type == ParamType.Int32)
+                {
+                    if (att.AllowNull)
+                    {
+                        if (this.isNull(att.FieldName))
                         {
-                            if (this.isNull(att.FieldName))
-                            {
-                                item.SetValue(registry, att.NullValueForInt);
-                            }
-                            else
-                            {
-                                item.SetValue(registry, this.getInt32(att.FieldName));
-                            }
+                            item.SetValue(registry, att.NullValueForInt);
                         }
                         else
                         {
                             item.SetValue(registry, this.getInt32(att.FieldName));
                         }
                     }
-                    else if (att.Type == ParamType.Int64)
+                    else
                     {
-                        if (att.AllowNull)
+                        item.SetValue(registry, this.getInt32(att.FieldName));
+                    }
+                }
+                else if (att.Type == ParamType.Int64)
+                {
+                    if (att.AllowNull)
+                    {
+                        if (this.isNull(att.FieldName))
                         {
-                            if (this.isNull(att.FieldName))
-                            {
-                                item.SetValue(registry, att.NullValueForInt);
-                            }
-                            else
-                            {
-                                item.SetValue(registry, this.getInt32(att.FieldName));
-                            }
+                            item.SetValue(registry, att.NullValueForInt);
                         }
                         else
                         {
                             item.SetValue(registry, this.getInt32(att.FieldName));
                         }
                     }
-                    else if (att.Type == ParamType.String)
+                    else
                     {
-                        if (att.AllowNull)
+                        item.SetValue(registry, this.getInt32(att.FieldName));
+                    }
+                }
+                else if (att.Type == ParamType.String)
+                {
+                    if (att.AllowNull)
+                    {
+                        if (this.isNull(att.FieldName))
                         {
-                            if (this.isNull(att.FieldName))
-                            {
-                                item.SetValue(registry, null);
-                            }
-                            else
-                            {
-                                item.SetValue(registry, this.getString(att.FieldName));
-                            }
+                            item.SetValue(registry, null);
                         }
                         else
                         {
                             item.SetValue(registry, this.getString(att.FieldName));
                         }
+                    }
+                    else
+                    {
+                        item.SetValue(registry, this.getString(att.FieldName));
                     }
                 }
             }
@@ -390,9 +433,25 @@ namespace es.dmoreno.utils.dataaccess.db
             return registry;
         }
 
+        public T fill<T>(T reg = null) where T : class, new()
+        {
+            if (reg == null)
+            {
+                reg = new T();
+            }
+
+            var properties = this.getPropertyInfos<T>(reg, true);
+            var attributes = this.getFieldAttributes(properties);
+
+            return this.fill<T>(properties, attributes);
+        }
+
         public List<T> fillToList<T>() where T : class, new()
         {
             List<T> list;
+
+            var properties = this.getPropertyInfos<T>(new T(), true);
+            var attributes = this.getFieldAttributes(properties);
 
             if (this.next())
             {
@@ -400,7 +459,7 @@ namespace es.dmoreno.utils.dataaccess.db
 
                 do
                 {
-                    list.Add(this.fill<T>());
+                    list.Add(this.fill<T>(properties));
                 }
                 while (this.next());
             }
