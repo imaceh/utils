@@ -6,7 +6,7 @@ namespace es.dmoreno.utils.dataaccess.db
 {
     public class DataBaseLogic : IDisposable
     {
-        static public string createStringConnection(DBMSType type, string host, string database, string user, string password, int port)
+        static private string createStringConnection(DBMSType type, string host, string database, string user, string password, int port)
         {
             string string_connection;
 
@@ -26,6 +26,14 @@ namespace es.dmoreno.utils.dataaccess.db
             return string_connection;
         }
 
+        private ConnectionParameters _parameters;
+        private SQLStatement _connection;
+        private Management _management;
+        private IConnector _connector;
+        private DBMSType _type;
+        private string _string_connection;
+        private bool _create_with_begin_transaction;
+              
         public SQLStatement Statement
         {
             get
@@ -33,6 +41,11 @@ namespace es.dmoreno.utils.dataaccess.db
                 if (this._connection == null)
                 {
                     this._connection = new SQLStatement(this._string_connection, this._type, this._connector);
+
+                    if (this._create_with_begin_transaction)
+                    {
+                        this._connection.beginTransaction();
+                    }
                 }
 
                 return this._connection;
@@ -59,84 +72,63 @@ namespace es.dmoreno.utils.dataaccess.db
             }
         }
 
-        public string ConnectionString
+        public DataBaseLogic(ConnectionParameters p)
         {
-            get
-            {
-                return this._string_connection;
-            }
-
-            set
-            {
-                if (this._connection != null)
-                {
-                    this._connection.Dispose();
-                }
-
-                this._string_connection = value;
-            }
+            this.initilize(p);
         }
 
-        private SQLStatement _connection;
-        private Management _management;
-        private IConnector _connector;
-        private DBMSType _type;
-        private string _string_connection;
-
-        private bool _disposed;
-
-        public DataBaseLogic(DBMSType type)
+        private void initilize(ConnectionParameters p)
         {
-            this.initilize(null, type, null, null);
-        }
-
-        public DataBaseLogic(DBMSType type, string string_connection, IConnector connector)
-        {
-            this.initilize(null, type, string_connection, connector);
-        }
-
-        private void initilize(SQLStatement connection, DBMSType type, string string_connection, IConnector connector)
-        {
-            this._connection = connection;
-            this._connector = connector;
-            this._type = type;
-            this._string_connection = string_connection;
-            this._disposed = false;
+            this._connection = null;
+            this._connector = p.Connector; ;
+            this._type = p.Type;
+            this._string_connection = DataBaseLogic.createStringConnection(p.Type, p.Host, p.Database, p.User, p.Password, p.Port);
+            this._parameters = p;
+            this._create_with_begin_transaction = p.BeginTransaction;
         }
 
         public DataBaseLogic duplicate()
         {
-            DataBaseLogic new_object;
-
-            new_object = new DataBaseLogic(this._type, this._string_connection, this._connector);
-
-            return new_object;
+            return new DataBaseLogic(this._parameters);
         }
 
-        public void Dispose()
-        {
-            this.Dispose(true);
-            GC.SuppressFinalize(this);
-        }
+        #region IDisposable Support
+        private bool disposedValue = false; // Para detectar llamadas redundantes
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!this._disposed)
+            if (!disposedValue)
             {
                 if (disposing)
                 {
+                    // TODO: elimine el estado administrado (objetos administrados).
                     if (this._connection != null)
                     {
                         this._connection.Dispose();
                     }
                 }
+
+                // TODO: libere los recursos no administrados (objetos no administrados) y reemplace el siguiente finalizador.
+                // TODO: configure los campos grandes en nulos.
+
+                disposedValue = true;
             }
-            this._disposed = true;
         }
 
-        ~DataBaseLogic()
+        // TODO: reemplace un finalizador solo si el anterior Dispose(bool disposing) tiene código para liberar los recursos no administrados.
+        // ~DataBaseLogic() {
+        //   // No cambie este código. Coloque el código de limpieza en el anterior Dispose(colocación de bool).
+        //   Dispose(false);
+        // }
+
+        // Este código se agrega para implementar correctamente el patrón descartable.
+        public void Dispose()
         {
-            this.Dispose(false);
+            // No cambie este código. Coloque el código de limpieza en el anterior Dispose(colocación de bool).
+            Dispose(true);
+            // TODO: quite la marca de comentario de la siguiente línea si el finalizador se ha reemplazado antes.
+            // GC.SuppressFinalize(this);
         }
+        #endregion
     }
 }
