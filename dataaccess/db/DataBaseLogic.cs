@@ -82,7 +82,7 @@ namespace es.dmoreno.utils.dataaccess.db
             this._connection = null;
             this._connector = p.Connector; ;
             this._type = p.Type;
-            this._string_connection = DataBaseLogic.createStringConnection(p.Type, p.Host, p.Database, p.User, p.Password, p.Port);
+            this._string_connection = DataBaseLogic.createStringConnection(p.Type, p.Type == DBMSType.SQLite? p.File : p.Host, p.Database, p.User, p.Password, p.Port);
             this._parameters = p;
             this._create_with_begin_transaction = p.BeginTransaction;
         }
