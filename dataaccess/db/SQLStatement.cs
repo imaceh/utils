@@ -486,7 +486,7 @@ namespace es.dmoreno.utils.dataaccess.db
             this._parameters.Clear();
         }
 
-        private SqliteType getTypeSQLite(ParamType type)
+        internal SqliteType getTypeSQLite(ParamType type)
         {
             SqliteType t;
             switch (type)
@@ -519,7 +519,7 @@ namespace es.dmoreno.utils.dataaccess.db
             return t;
         }
 
-        private string getTypeSQLiteString(ParamType type)
+        internal string getTypeSQLiteString(ParamType type)
         {
             SqliteType t;
             string result;
@@ -1317,145 +1317,145 @@ namespace es.dmoreno.utils.dataaccess.db
             return result;
         }
 
-        private string getCreateFieldMySQL(FieldAttribute field_info, bool without_pk = false)
-        {
-            string result;
+        //private string getCreateFieldMySQL(FieldAttribute field_info, bool without_pk = false)
+        //{
+        //    string result;
 
-            result = field_info.FieldName + " " + this._connector.getTypeString(field_info.Type, field_info.Size);
+        //    result = field_info.FieldName + " " + this._connector.getTypeString(field_info.Type, field_info.Size);
 
-            //if (field_info.IsAutoincrement && (field_info.Type == ParamType.Int16 || field_info.Type == ParamType.Int32 || field_info.Type == ParamType.Int64))
-            //{
-            //    result += " AUTO_INCREMENT";
-            //}
+        //    //if (field_info.IsAutoincrement && (field_info.Type == ParamType.Int16 || field_info.Type == ParamType.Int32 || field_info.Type == ParamType.Int64))
+        //    //{
+        //    //    result += " AUTO_INCREMENT";
+        //    //}
 
-            if (!field_info.IsPrimaryKey || (field_info.IsPrimaryKey && without_pk))
-            {
-                if (!field_info.AllowNull)
-                {
-                    result += " NOT NULL";
-                }
-            }
+        //    if (!field_info.IsPrimaryKey || (field_info.IsPrimaryKey && without_pk))
+        //    {
+        //        if (!field_info.AllowNull)
+        //        {
+        //            result += " NOT NULL";
+        //        }
+        //    }
 
-            if (field_info.DefaultValue != null)
-            {
-                if (field_info.Type == ParamType.Boolean)
-                {
-                    if ((bool)field_info.DefaultValue)
-                    {
-                        result += " DEFAULT 1";
-                    }
-                    else
-                    {
-                        result += " DEFAULT 0";
-                    }
-                }
-                else if (field_info.Type == ParamType.Int16 || field_info.Type == ParamType.Int32 || field_info.Type == ParamType.Int64)
-                {
-                    result += " DEFAULT " + Convert.ToInt32(field_info.DefaultValue).ToString();
-                }
-                else if (field_info.Type == ParamType.DateTime)
-                {
-                    if ((string)field_info.DefaultValue == "0")
-                    {
-                        result += " DEFAULT " + DateTime.MinValue.Ticks.ToString();
-                    }
-                    else
-                    {
-                        result += " DEFAULT " + DateTime.Parse((string)field_info.DefaultValue).Ticks.ToString();
-                    }
-                }
-                else if (field_info.Type == ParamType.String || field_info.Type == ParamType.LongString)
-                {
-                    result += " DEFAULT '" + (string)field_info.DefaultValue + "'";
-                }
-                else if (field_info.Type == ParamType.Decimal)
-                {
-                    result += " DEFAULT " + Convert.ToDecimal(field_info.DefaultValue).ToString();
-                }
-                else
-                {
-                    throw new Exception("Datatype not supported");
-                }
-            }
+        //    if (field_info.DefaultValue != null)
+        //    {
+        //        if (field_info.Type == ParamType.Boolean)
+        //        {
+        //            if ((bool)field_info.DefaultValue)
+        //            {
+        //                result += " DEFAULT 1";
+        //            }
+        //            else
+        //            {
+        //                result += " DEFAULT 0";
+        //            }
+        //        }
+        //        else if (field_info.Type == ParamType.Int16 || field_info.Type == ParamType.Int32 || field_info.Type == ParamType.Int64)
+        //        {
+        //            result += " DEFAULT " + Convert.ToInt32(field_info.DefaultValue).ToString();
+        //        }
+        //        else if (field_info.Type == ParamType.DateTime)
+        //        {
+        //            if ((string)field_info.DefaultValue == "0")
+        //            {
+        //                result += " DEFAULT " + DateTime.MinValue.Ticks.ToString();
+        //            }
+        //            else
+        //            {
+        //                result += " DEFAULT " + DateTime.Parse((string)field_info.DefaultValue).Ticks.ToString();
+        //            }
+        //        }
+        //        else if (field_info.Type == ParamType.String || field_info.Type == ParamType.LongString)
+        //        {
+        //            result += " DEFAULT '" + (string)field_info.DefaultValue + "'";
+        //        }
+        //        else if (field_info.Type == ParamType.Decimal)
+        //        {
+        //            result += " DEFAULT " + Convert.ToDecimal(field_info.DefaultValue).ToString();
+        //        }
+        //        else
+        //        {
+        //            throw new Exception("Datatype not supported");
+        //        }
+        //    }
 
-            return result;
-        }
+        //    return result;
+        //}
 
-        internal string getCreateFieldSQLite(FieldAttribute field_info, bool without_pk = false)
-        {
-            string result;
+        //internal string getCreateFieldSQLite(FieldAttribute field_info, bool without_pk = false)
+        //{
+        //    string result;
 
-            result = field_info.FieldName + " " + this.getTypeSQLiteString(field_info.Type);
+        //    result = field_info.FieldName + " " + this.getTypeSQLiteString(field_info.Type);
 
-            if (field_info.IsAutoincrement && (field_info.Type == ParamType.Int16 || field_info.Type == ParamType.Int32 || field_info.Type == ParamType.Int64))
-            {
-                result += " AUTOINCREMENT";
-            }
+        //    if (field_info.IsAutoincrement && (field_info.Type == ParamType.Int16 || field_info.Type == ParamType.Int32 || field_info.Type == ParamType.Int64))
+        //    {
+        //        result += " AUTOINCREMENT";
+        //    }
 
-            if (!field_info.IsPrimaryKey || (field_info.IsPrimaryKey && without_pk))
-            {
-                if (!field_info.AllowNull)
-                {
-                    result += " NOT NULL";
-                }
-            }
+        //    if (!field_info.IsPrimaryKey || (field_info.IsPrimaryKey && without_pk))
+        //    {
+        //        if (!field_info.AllowNull)
+        //        {
+        //            result += " NOT NULL";
+        //        }
+        //    }
 
-            if (field_info.DefaultValue != null)
-            {
-                if (field_info.Type == ParamType.Boolean)
-                {
-                    if ((bool)field_info.DefaultValue)
-                    {
-                        result += " DEFAULT 1";
-                    }
-                    else
-                    {
-                        result += " DEFAULT 0";
-                    }
-                }
-                else if (field_info.Type == ParamType.Int16 || field_info.Type == ParamType.Int32 || field_info.Type == ParamType.Int64)
-                {
-                    result += " DEFAULT " + Convert.ToInt32(field_info.DefaultValue).ToString();
-                }
-                else if (field_info.Type == ParamType.DateTime)
-                {
-                    if ((string)field_info.DefaultValue == "0")
-                    {
-                        result += " DEFAULT " + DateTime.MinValue.Ticks.ToString();
-                    }
-                    else
-                    {
-                        result += " DEFAULT " + DateTime.Parse((string)field_info.DefaultValue).Ticks.ToString();
-                    }
-                }
-                else if (field_info.Type == ParamType.String)
-                {
-                    result += " DEFAULT '" + (string)field_info.DefaultValue + "'";
-                }
-                else if (field_info.Type == ParamType.Decimal)
-                {
-                    result += " DEFAULT " + Convert.ToDecimal(field_info.DefaultValue).ToString();
-                }
-                else
-                {
-                    throw new Exception("Datatype not supported");
-                }
-            }
+        //    if (field_info.DefaultValue != null)
+        //    {
+        //        if (field_info.Type == ParamType.Boolean)
+        //        {
+        //            if ((bool)field_info.DefaultValue)
+        //            {
+        //                result += " DEFAULT 1";
+        //            }
+        //            else
+        //            {
+        //                result += " DEFAULT 0";
+        //            }
+        //        }
+        //        else if (field_info.Type == ParamType.Int16 || field_info.Type == ParamType.Int32 || field_info.Type == ParamType.Int64)
+        //        {
+        //            result += " DEFAULT " + Convert.ToInt32(field_info.DefaultValue).ToString();
+        //        }
+        //        else if (field_info.Type == ParamType.DateTime)
+        //        {
+        //            if ((string)field_info.DefaultValue == "0")
+        //            {
+        //                result += " DEFAULT " + DateTime.MinValue.Ticks.ToString();
+        //            }
+        //            else
+        //            {
+        //                result += " DEFAULT " + DateTime.Parse((string)field_info.DefaultValue).Ticks.ToString();
+        //            }
+        //        }
+        //        else if (field_info.Type == ParamType.String)
+        //        {
+        //            result += " DEFAULT '" + (string)field_info.DefaultValue + "'";
+        //        }
+        //        else if (field_info.Type == ParamType.Decimal)
+        //        {
+        //            result += " DEFAULT " + Convert.ToDecimal(field_info.DefaultValue).ToString();
+        //        }
+        //        else
+        //        {
+        //            throw new Exception("Datatype not supported");
+        //        }
+        //    }
 
-            return result;
-        }
+        //    return result;
+        //}
 
-        public async Task<List<DescRow>> descTableAsync<T>() where T : class, new()
-        {
-            SQLData data;
-            TableAttribute table_att;
+        //public async Task<List<DescRow>> descTableAsync<T>() where T : class, new()
+        //{
+        //    SQLData data;
+        //    TableAttribute table_att;
             
-            table_att = new T().GetType().GetTypeInfo().GetCustomAttribute<TableAttribute>();
+        //    table_att = new T().GetType().GetTypeInfo().GetCustomAttribute<TableAttribute>();
 
-            data = await this.executeAsync("DESC " + table_att.Name);
+        //    data = await this.executeAsync("DESC " + table_att.Name);
             
-            return data.fillToList<DescRow>();
-        }
+        //    return data.fillToList<DescRow>();
+        //}
 
         private List<FieldAttribute> getPrimariesKeys<T>() where T : class, new()
         {
@@ -1477,329 +1477,190 @@ namespace es.dmoreno.utils.dataaccess.db
             return result;
         }
 
-        private void checkSchemaInMySQL<T>() where T : class, new()
-        {
-            FieldAttribute field_att;
-            int auto_increment_fields = 0;
+        
 
-            foreach (PropertyInfo item in new T().GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
-            {
-                field_att = item.GetCustomAttribute<FieldAttribute>();
-                if (field_att != null)
-                {
-                    if (field_att.IsAutoincrement)
-                    {
-                        auto_increment_fields++;
+        //private async Task<bool> createUpdateTableMySQLAsync<T>() where T : class, new()
+        //{
+        //    T t;
+        //    List<FieldAttribute> pks_from_T;
+        //    TableAttribute table_att;
+        //    FieldAttribute field_att;
+        //    List<string> pks;
+        //    List<DescRow> desc_table;
+        //    List<DescRow> pks_original;
+        //    List<DescRow> pks_original_w_autoincrement;
+        //    bool result;
+        //    bool new_table;
+        //    bool new_pk;
+        //    bool add_autoinc;
+        //    string sql;
 
-                        if (!field_att.isInteger)
-                        {
-                            throw new Exception("Field " + field_att.FieldName + " not is integer field but has enable auto_increment attributte");
-                        }
-                    }
-                }
-            }
+        //    this.checkSchemaInMySQL<T>();
 
-            if (auto_increment_fields > 1)
-            {
-                throw new Exception("Only is allowed one auto_increment field");
-            }
-        }
+        //    result = true;
 
-        private async Task<bool> createUpdateTableMySQLAsync<T>() where T : class, new()
-        {
-            T t;
-            List<FieldAttribute> pks_from_T;
-            TableAttribute table_att;
-            FieldAttribute field_att;
-            List<string> pks;
-            List<DescRow> desc_table;
-            List<DescRow> pks_original;
-            List<DescRow> pks_original_w_autoincrement;
-            bool result;
-            bool new_table;
-            bool new_pk;
-            bool add_autoinc;
-            string sql;
+        //    t = new T();
+        //    pks = new List<string>();
 
-            this.checkSchemaInMySQL<T>();
+        //    //check if table exists
+        //    table_att = t.GetType().GetTypeInfo().GetCustomAttribute<TableAttribute>();
 
-            result = true;
+        //    try
+        //    {
+        //        sql = "SELECT * FROM " + table_att.Name + " LIMIT 1";
+        //        await this.executeAsync(sql);
+        //        result = true;
+        //        new_table = false;
+        //    }
+        //    catch
+        //    {
+        //        result = false;
+        //        new_table = true;
+        //    }
 
-            t = new T();
-            pks = new List<string>();
+        //    //if not exists create a table empty with primary key            
+        //    if (new_table)
+        //    {                
+        //        sql = "CREATE TABLE " + table_att.Name + " ( _auto_created INT DEFAULT NULL) ";
 
-            //check if table exists
-            table_att = t.GetType().GetTypeInfo().GetCustomAttribute<TableAttribute>();
+        //        switch (table_att.Type)
+        //        {
+        //            case EngineType.InnoDB:
+        //                sql += " ENGINE = INNODB";
+        //                break;
+        //            case EngineType.MyISAM:
+        //                sql += " ENGINE = MYISAM";
+        //                break;
+        //        }
 
-            try
-            {
-                sql = "SELECT * FROM " + table_att.Name + " LIMIT 1";
-                await this.executeAsync(sql);
-                result = true;
-                new_table = false;
-            }
-            catch
-            {
-                result = false;
-                new_table = true;
-            }
+        //        await this.executeNonQueryAsync(sql);
+        //    }
 
-            //if not exists create a table empty with primary key            
-            if (new_table)
-            {                
-                sql = "CREATE TABLE " + table_att.Name + " ( _auto_created INT DEFAULT NULL) ";
+        //    //Create new fields
+        //    desc_table = await this.descTableAsync<T>();
 
-                switch (table_att.Type)
-                {
-                    case EngineType.InnoDB:
-                        sql += " ENGINE = INNODB";
-                        break;
-                    case EngineType.MyISAM:
-                        sql += " ENGINE = MYISAM";
-                        break;
-                }
+        //    foreach (PropertyInfo item in t.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+        //    {
+        //        field_att = item.GetCustomAttribute<FieldAttribute>();
+        //        if (field_att != null)
+        //        {
+        //            //if no exists then will be created
+        //            if (desc_table.Where(f => f.Field == field_att.FieldName).Count() == 0)
+        //            {
+        //                sql = "ALTER TABLE " + table_att.Name + " ADD COLUMN " + this.getCreateFieldMySQL(field_att);
+        //                await this.executeNonQueryAsync(sql);
+        //            }
+        //        }
+        //    }
 
-                await this.executeNonQueryAsync(sql);
-            }
+        //    //Compare PKs for decide if will be update PK constraint
+        //    pks_original = desc_table.Where(r => r.Key == "PRI").ToList();
+        //    pks_from_T = this.getPrimariesKeys<T>();
 
-            //Create new fields
-            desc_table = await this.descTableAsync<T>();
+        //    new_pk = pks_original.Count != pks_from_T.Count;
 
-            foreach (PropertyInfo item in t.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
-            {
-                field_att = item.GetCustomAttribute<FieldAttribute>();
-                if (field_att != null)
-                {
-                    //if no exists then will be created
-                    if (desc_table.Where(f => f.Field == field_att.FieldName).Count() == 0)
-                    {
-                        sql = "ALTER TABLE " + table_att.Name + " ADD COLUMN " + this.getCreateFieldMySQL(field_att);
-                        await this.executeNonQueryAsync(sql);
-                    }
-                }
-            }
+        //    if (!new_pk)
+        //    {
+        //        foreach (DescRow item in pks_original)
+        //        {
+        //            if (pks_from_T.Where(f => f.FieldName == item.Field).Count() == 0)
+        //            {
+        //                new_pk = true;
+        //                break;
+        //            }
+        //        }
+        //    }
 
-            //Compare PKs for decide if will be update PK constraint
-            pks_original = desc_table.Where(r => r.Key == "PRI").ToList();
-            pks_from_T = this.getPrimariesKeys<T>();
+        //    //Get actual autoincrement field
+        //    pks_original_w_autoincrement = pks_original.Where(f => f.Extra.Contains("auto_increment")).ToList();
 
-            new_pk = pks_original.Count != pks_from_T.Count;
+        //    //Remove AUTO_INCREMENT field
+        //    if (pks_original_w_autoincrement.Count > 0)
+        //    {
+        //        //No same autoincrement field
+        //        if ((pks_from_T.Where(f => pks_original_w_autoincrement[0].Field == f.FieldName).Count() == 0) ||
+        //            //Not exists autoincrement in new schema
+        //            (pks_from_T.Where(f => f.IsAutoincrement == true).Count() == 0))
+        //        {
+        //            add_autoinc = true;
 
-            if (!new_pk)
-            {
-                foreach (DescRow item in pks_original)
-                {
-                    if (pks_from_T.Where(f => f.FieldName == item.Field).Count() == 0)
-                    {
-                        new_pk = true;
-                        break;
-                    }
-                }
-            }
+        //            //Remove actual attribute from actual auto_criment field
+        //            sql = "ALTER TABLE " + table_att.Name + " MODIFY COLUMN " + pks_original_w_autoincrement[0].Field + " " + pks_original_w_autoincrement[0].Type;
+        //            if (pks_original_w_autoincrement[0].Null == "NO")
+        //            {
+        //                sql += " NOT ";
+        //            }
+        //            sql += " NULL";
+        //            if (pks_original_w_autoincrement[0].Default != null)
+        //            {
+        //                sql += " DEFAULT '" + pks_original_w_autoincrement[0].Default + "'";
+        //            }
 
-            //Get actual autoincrement field
-            pks_original_w_autoincrement = pks_original.Where(f => f.Extra.Contains("auto_increment")).ToList();
+        //            await this.executeNonQueryAsync(sql);
+        //        }
+        //        else
+        //        {
+        //            add_autoinc = false;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        add_autoinc = true;
+        //    }
 
-            //Remove AUTO_INCREMENT field
-            if (pks_original_w_autoincrement.Count > 0)
-            {
-                //No same autoincrement field
-                if ((pks_from_T.Where(f => pks_original_w_autoincrement[0].Field == f.FieldName).Count() == 0) ||
-                    //Not exists autoincrement in new schema
-                    (pks_from_T.Where(f => f.IsAutoincrement == true).Count() == 0))
-                {
-                    add_autoinc = true;
+        //    //If is necessary create new PK
+        //    if (new_pk)
+        //    {               
+        //        if (pks_original.Count > 0)
+        //        {
+        //            sql = "ALTER TABLE " + table_att.Name + " DROP PRIMARY KEY";
+        //            await this.executeNonQueryAsync(sql);
+        //        }
 
-                    //Remove actual attribute from actual auto_criment field
-                    sql = "ALTER TABLE " + table_att.Name + " MODIFY COLUMN " + pks_original_w_autoincrement[0].Field + " " + pks_original_w_autoincrement[0].Type;
-                    if (pks_original_w_autoincrement[0].Null == "NO")
-                    {
-                        sql += " NOT ";
-                    }
-                    sql += " NULL";
-                    if (pks_original_w_autoincrement[0].Default != null)
-                    {
-                        sql += " DEFAULT '" + pks_original_w_autoincrement[0].Default + "'";
-                    }
+        //        if (pks_from_T.Count > 0)
+        //        {
+        //            sql = "ALTER TABLE " + table_att.Name + " ADD CONSTRAINT pk_" + table_att.Name + " PRIMARY KEY (";
+        //            for (int i = 0; i < pks_from_T.Count; i++)
+        //            {
+        //                sql += pks_from_T[i].FieldName;
 
-                    await this.executeNonQueryAsync(sql);
-                }
-                else
-                {
-                    add_autoinc = false;
-                }
-            }
-            else
-            {
-                add_autoinc = true;
-            }
+        //                if (i < pks_from_T.Count - 1)
+        //                {
+        //                    sql += ", ";
+        //                }
+        //            }
+        //            sql += ")";
 
-            //If is necessary create new PK
-            if (new_pk)
-            {               
-                if (pks_original.Count > 0)
-                {
-                    sql = "ALTER TABLE " + table_att.Name + " DROP PRIMARY KEY";
-                    await this.executeNonQueryAsync(sql);
-                }
+        //            await this.executeNonQueryAsync(sql);
+        //        }
+        //    }
 
-                if (pks_from_T.Count > 0)
-                {
-                    sql = "ALTER TABLE " + table_att.Name + " ADD CONSTRAINT pk_" + table_att.Name + " PRIMARY KEY (";
-                    for (int i = 0; i < pks_from_T.Count; i++)
-                    {
-                        sql += pks_from_T[i].FieldName;
+        //    //If is necessary create new autoincrement field
+        //    if (add_autoinc)
+        //    {
+        //        foreach (FieldAttribute item in pks_from_T)
+        //        {
+        //            if (item.IsAutoincrement)
+        //            {
+        //                if (item.isInteger)
+        //                {
+        //                    sql = "ALTER TABLE " + table_att.Name + " MODIFY COLUMN " + this.getCreateFieldMySQL(item) + " AUTO_INCREMENT";
+        //                    await this.executeNonQueryAsync(sql);
+        //                }
+        //                break;
+        //            }
+        //        }
+        //    }
 
-                        if (i < pks_from_T.Count - 1)
-                        {
-                            sql += ", ";
-                        }
-                    }
-                    sql += ")";
+        //    result = true;
 
-                    await this.executeNonQueryAsync(sql);
-                }
-            }
-
-            //If is necessary create new autoincrement field
-            if (add_autoinc)
-            {
-                foreach (FieldAttribute item in pks_from_T)
-                {
-                    if (item.IsAutoincrement)
-                    {
-                        if (item.isInteger)
-                        {
-                            sql = "ALTER TABLE " + table_att.Name + " MODIFY COLUMN " + this.getCreateFieldMySQL(item) + " AUTO_INCREMENT";
-                            await this.executeNonQueryAsync(sql);
-                        }
-                        break;
-                    }
-                }
-            }
-
-            result = true;
-
-            return result;
-        }
-
-        private async Task<bool> createUpdateTableSQLiteAsync<T>() where T : class, new()
-        {
-            T t;
-            TableAttribute table_att;
-            FieldAttribute field_att;
-            List<FieldAttribute> pks;
-            bool result;
-            bool new_table;
-            string sql;
-
-            result = true;
-
-            t = new T();
-            pks = new List<FieldAttribute>();
-
-            //Check if table exists
-            table_att = t.GetType().GetTypeInfo().GetCustomAttribute<TableAttribute>();
-
-            try
-            {
-                sql = "SELECT * FROM " + table_att.Name + " LIMIT 1";
-                await this.executeAsync(sql);
-                result = true;
-                new_table = false;
-            }
-            catch
-            {
-                result = false;
-                new_table = true;
-            }
-
-            if (new_table)
-            {
-                foreach (PropertyInfo item in t.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
-                {
-                    field_att = item.GetCustomAttribute<FieldAttribute>();
-                    if (field_att != null)
-                    {
-                        if (field_att.IsPrimaryKey)
-                        {
-                            pks.Add(field_att);
-                        }
-                    }
-                }
-
-                sql = "CREATE TABLE " + table_att.Name + " (";
-                if (pks.Count == 0)
-                {
-                    sql += " _auto_created INTEGER DEFAULT NULL";
-                }
-                else
-                {
-                    for (int i = 0; i < pks.Count; i++)
-                    {
-                        sql += this.getCreateFieldSQLite(pks[i]) + ", ";
-                    }
-
-                    sql += " PRIMARY KEY (";
-                    for (int i = 0; i < pks.Count; i++)
-                    {
-                        sql += pks[i].FieldName;
-
-                        if (i < pks.Count - 1)
-                        {
-                            sql += ", ";
-                        }
-                    }
-                    sql += ")";
-                }
-                sql += ")";
-
-                await this.executeNonQueryAsync(sql);
-            }
-
-            //Check if fields exists
-            foreach (PropertyInfo item in t.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
-            {
-                field_att = item.GetCustomAttribute<FieldAttribute>();
-
-                if (field_att != null)
-                {
-                    if (!field_att.IsPrimaryKey)
-                    {
-                        //Check if exists
-                        sql = "SELECT " + field_att.FieldName + " FROM " + table_att.Name + " LIMIT 1";
-                        try
-                        {
-                            await this.executeAsync(sql);
-                            result = true;
-                        }
-                        catch
-                        {
-                            result = false;
-                        }
-
-                        //Create field
-                        if (!result)
-                        {
-                            sql = "ALTER TABLE " + table_att.Name + " ADD COLUMN " + this.getCreateFieldSQLite(field_att, true);
-                            await this.executeNonQueryAsync(sql);
-                            result = true;
-                        }
-                    }
-                }
-            }
-
-            return result;
-        }
+        //    return result;
+        //}
 
         public async Task<bool> createUpdateTableAsync<T>() where T : class, new()
         {
             bool result;
 
-            if (this.sgbd == DBMSType.SQLite)
-            {
-                result = await this.createUpdateTableSQLiteAsync<T>();
-            }
             if (this.sgbd == DBMSType.MySQL)
             {
                 result = await this.createUpdateTableMySQLAsync<T>();

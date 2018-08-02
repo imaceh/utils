@@ -16,7 +16,7 @@ namespace es.dmoreno.utils.dataaccess.db
             this._s = s;
         }
 
-        public abstract DescRow getDescAsync<T>() where T : class, new();
+        public abstract Task<List<DescRow>> getDescAsync<T>() where T : class, new();
 
         public abstract Task<bool> createAlterTableAsync<T>() where T : class, new();
     }

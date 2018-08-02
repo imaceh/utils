@@ -65,7 +65,7 @@ namespace es.dmoreno.utils.dataaccess.db
                 {
                     for (int i = 0; i < pks.Count; i++)
                     {
-                        sql += this.Statement.getCreateFieldSQLite(pks[i]) + ", ";
+                        sql += this.getCreateFieldSQLite(pks[i]) + ", ";
                     }
 
                     sql += " PRIMARY KEY (";
@@ -109,7 +109,7 @@ namespace es.dmoreno.utils.dataaccess.db
                         //Create field
                         if (!result)
                         {
-                            sql = "ALTER TABLE " + table_att.Name + " ADD COLUMN " + this.Statement.getCreateFieldSQLite(field_att, true);
+                            sql = "ALTER TABLE " + table_att.Name + " ADD COLUMN " + this.getCreateFieldSQLite(field_att, true);
                             await this.Statement.executeNonQueryAsync(sql);
                             result = true;
                         }
@@ -120,9 +120,73 @@ namespace es.dmoreno.utils.dataaccess.db
             return result;
         }
 
-        public override DescRow getDescAsync<T>()
+        public override Task<List<DescRow>> getDescAsync<T>()
         {
             throw new NotImplementedException();
         }
+
+        internal string getCreateFieldSQLite(FieldAttribute field_info, bool without_pk = false)
+        {
+            string result;
+
+            result = field_info.FieldName + " " + this.Statement.getTypeSQLiteString(field_info.Type);
+
+            if (field_info.IsAutoincrement && (field_info.Type == ParamType.Int16 || field_info.Type == ParamType.Int32 || field_info.Type == ParamType.Int64))
+            {
+                result += " AUTOINCREMENT";
+            }
+
+            if (!field_info.IsPrimaryKey || (field_info.IsPrimaryKey && without_pk))
+            {
+                if (!field_info.AllowNull)
+                {
+                    result += " NOT NULL";
+                }
+            }
+
+            if (field_info.DefaultValue != null)
+            {
+                if (field_info.Type == ParamType.Boolean)
+                {
+                    if ((bool)field_info.DefaultValue)
+                    {
+                        result += " DEFAULT 1";
+                    }
+                    else
+                    {
+                        result += " DEFAULT 0";
+                    }
+                }
+                else if (field_info.Type == ParamType.Int16 || field_info.Type == ParamType.Int32 || field_info.Type == ParamType.Int64)
+                {
+                    result += " DEFAULT " + Convert.ToInt32(field_info.DefaultValue).ToString();
+                }
+                else if (field_info.Type == ParamType.DateTime)
+                {
+                    if ((string)field_info.DefaultValue == "0")
+                    {
+                        result += " DEFAULT " + DateTime.MinValue.Ticks.ToString();
+                    }
+                    else
+                    {
+                        result += " DEFAULT " + DateTime.Parse((string)field_info.DefaultValue).Ticks.ToString();
+                    }
+                }
+                else if (field_info.Type == ParamType.String)
+                {
+                    result += " DEFAULT '" + (string)field_info.DefaultValue + "'";
+                }
+                else if (field_info.Type == ParamType.Decimal)
+                {
+                    result += " DEFAULT " + Convert.ToDecimal(field_info.DefaultValue).ToString();
+                }
+                else
+                {
+                    throw new Exception("Datatype not supported");
+                }
+            }
+
+            return result;
+        }        
     }
 }
