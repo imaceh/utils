@@ -1,6 +1,7 @@
 ﻿using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,8 +16,6 @@ namespace es.dmoreno.utils.dataaccess.db
         {
             T t;
             TableAttribute table_att;
-            FieldAttribute field_att;
-            List<FieldAttribute> pks;
             bool result;
             bool new_table;
             string sql;
@@ -26,8 +25,7 @@ namespace es.dmoreno.utils.dataaccess.db
             result = true;
 
             t = new T();
-            pks = new List<FieldAttribute>();
-
+            
             //Check if table exists
             table_att = t.GetType().GetTypeInfo().GetCustomAttribute<TableAttribute>();
 
@@ -46,28 +44,22 @@ namespace es.dmoreno.utils.dataaccess.db
 
             if (new_table)
             {
-                foreach (PropertyInfo item in t.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
-                {
-                    field_att = item.GetCustomAttribute<FieldAttribute>();
-                    if (field_att != null)
-                    {
-                        if (field_att.IsPrimaryKey)
-                        {
-                            pks.Add(field_att);
-                        }
-                    }
-                }
+                var pks = Utils.getFieldAttributes(Utils.getPropertyInfos<T>(t, true)).Where(a => a.IsPrimaryKey).ToList();
 
                 sql = "CREATE TABLE " + table_att.Name + " (";
                 if (pks.Count == 0)
                 {
                     sql += " _auto_created INTEGER DEFAULT NULL";
                 }
+                else if (pks.Count == 1)
+                {
+                    sql += " " + this.getCreateFieldSQLite(pks[0], true);
+                }
                 else
                 {
                     for (int i = 0; i < pks.Count; i++)
                     {
-                        sql += this.getCreateFieldSQLite(pks[i]) + ", ";
+                        sql += this.getCreateFieldSQLite(pks[i], false) + ", ";
                     }
 
                     sql += " PRIMARY KEY (";
@@ -88,34 +80,27 @@ namespace es.dmoreno.utils.dataaccess.db
             }
 
             //Check if fields exists
-            foreach (PropertyInfo item in t.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            //foreach (PropertyInfo item in t.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            foreach(var item in Utils.getFieldAttributes(Utils.getPropertyInfos<T>(t, true)).Where(a => !a.IsPrimaryKey))
             {
-                field_att = item.GetCustomAttribute<FieldAttribute>();
-
-                if (field_att != null)
+                //Check if exists
+                sql = "SELECT " + item.FieldName + " FROM " + table_att.Name + " LIMIT 1";
+                try
                 {
-                    if (!field_att.IsPrimaryKey)
-                    {
-                        //Check if exists
-                        sql = "SELECT " + field_att.FieldName + " FROM " + table_att.Name + " LIMIT 1";
-                        try
-                        {
-                            await this.Statement.executeAsync(sql);
-                            result = true;
-                        }
-                        catch
-                        {
-                            result = false;
-                        }
+                    await this.Statement.executeAsync(sql);
+                    result = true;
+                }
+                catch
+                {
+                    result = false;
+                }
 
-                        //Create field
-                        if (!result)
-                        {
-                            sql = "ALTER TABLE " + table_att.Name + " ADD COLUMN " + this.getCreateFieldSQLite(field_att, true);
-                            await this.Statement.executeNonQueryAsync(sql);
-                            result = true;
-                        }
-                    }
+                //Create field
+                if (!result)
+                {
+                    sql = "ALTER TABLE " + table_att.Name + " ADD COLUMN " + this.getCreateFieldSQLite(item, false);
+                    await this.Statement.executeNonQueryAsync(sql);
+                    result = true;
                 }
             }
 
@@ -127,18 +112,26 @@ namespace es.dmoreno.utils.dataaccess.db
             throw new NotImplementedException();
         }
 
-        internal string getCreateFieldSQLite(FieldAttribute field_info, bool without_pk = false)
+        internal string getCreateFieldSQLite(FieldAttribute field_info, bool include_pk = false)
         {
             string result;
 
             result = field_info.FieldName + " " + this.Statement.getTypeSQLiteString(field_info.Type);
 
-            if (field_info.IsAutoincrement && (field_info.Type == ParamType.Int16 || field_info.Type == ParamType.Int32 || field_info.Type == ParamType.Int64))
+            if (include_pk)
+            {
+                if (field_info.IsPrimaryKey)
+                {
+                    result += " PRIMARY KEY";
+                }
+            }
+
+            if (field_info.IsAutoincrement && field_info.isNumeric)
             {
                 result += " AUTOINCREMENT";
             }
 
-            if (!field_info.IsPrimaryKey || (field_info.IsPrimaryKey && without_pk))
+            if (!field_info.IsPrimaryKey || (field_info.IsPrimaryKey && !include_pk))
             {
                 if (!field_info.AllowNull)
                 {
