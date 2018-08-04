@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 
 namespace es.dmoreno.utils.dataaccess.db
@@ -41,6 +42,51 @@ namespace es.dmoreno.utils.dataaccess.db
             result += buildInString(elements.ToArray());
 
             result += "]";
+
+            return result;
+        }
+
+        static public List<PropertyInfo> getPropertyInfos<T>(T reg, bool with_fieldattribute = false) where T : class, new()
+        {
+            List<PropertyInfo> result;
+
+            var properties = reg.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+            result = new List<PropertyInfo>(properties.Length);
+
+            foreach (var item in properties)
+            {
+                if (with_fieldattribute)
+                {
+                    var att = item.GetCustomAttribute<FieldAttribute>();
+
+                    if (att != null)
+                    {
+                        result.Add(item);
+                    }
+                }
+                else
+                {
+                    result.Add(item);
+                }
+            }
+
+            return result;
+        }
+
+        static public List<FieldAttribute> getFieldAttributes(List<PropertyInfo> p)
+        {
+            var result = new List<FieldAttribute>(p.Count);
+
+            foreach (var item in p)
+            {
+                var att = item.GetCustomAttribute<FieldAttribute>();
+
+                if (att != null)
+                {
+                    result.Add(att);
+                }
+            }
 
             return result;
         }

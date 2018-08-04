@@ -234,50 +234,7 @@ namespace es.dmoreno.utils.dataaccess.db
                 return this.getDecimal(field);
         }
 
-        private List<PropertyInfo> getPropertyInfos<T>(T reg, bool with_fieldattribute = false) where T : class, new()
-        {
-            List<PropertyInfo> result;
-
-            var properties = reg.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-
-            result = new List<PropertyInfo>(properties.Length);
-
-            foreach (var item in properties)
-            {
-                if (with_fieldattribute)
-                {
-                    var att = item.GetCustomAttribute<FieldAttribute>();
-
-                    if (att != null)
-                    {
-                        result.Add(item);
-                    }
-                }
-                else
-                {
-                    result.Add(item);
-                }
-            }
-
-            return result;
-        }
-
-        private List<FieldAttribute> getFieldAttributes(List<PropertyInfo> p)
-        {
-            var result = new List<FieldAttribute>(p.Count);
-
-            foreach (var item in p)
-            {
-                var att = item.GetCustomAttribute<FieldAttribute>();
-
-                if (att != null)
-                {
-                    result.Add(att);
-                }
-            }
-            
-            return result;
-        }
+        
 
         private T fill<T>(List<PropertyInfo> p, List<FieldAttribute> a = null) where T : class, new()
         {
@@ -286,7 +243,7 @@ namespace es.dmoreno.utils.dataaccess.db
             List<FieldAttribute> attributes;
             if (a == null)
             {
-                attributes = this.getFieldAttributes(p);
+                attributes = Utils.getFieldAttributes(p);
             }
             else
             {
@@ -440,8 +397,8 @@ namespace es.dmoreno.utils.dataaccess.db
                 reg = new T();
             }
 
-            var properties = this.getPropertyInfos<T>(reg, true);
-            var attributes = this.getFieldAttributes(properties);
+            var properties = Utils.getPropertyInfos<T>(reg, true);
+            var attributes = Utils.getFieldAttributes(properties);
 
             return this.fill<T>(properties, attributes);
         }
@@ -450,8 +407,8 @@ namespace es.dmoreno.utils.dataaccess.db
         {
             List<T> list;
 
-            var properties = this.getPropertyInfos<T>(new T(), true);
-            var attributes = this.getFieldAttributes(properties);
+            var properties = Utils.getPropertyInfos<T>(new T(), true);
+            var attributes = Utils.getFieldAttributes(properties);
 
             if (this.next())
             {

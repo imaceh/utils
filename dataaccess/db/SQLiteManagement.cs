@@ -21,6 +21,8 @@ namespace es.dmoreno.utils.dataaccess.db
             bool new_table;
             string sql;
 
+            this.checkSchemaSQLite<T>();
+
             result = true;
 
             t = new T();
@@ -187,6 +189,48 @@ namespace es.dmoreno.utils.dataaccess.db
             }
 
             return result;
-        }        
+        }
+
+        private void checkSchemaSQLite<T>() where T : class, new()
+        {
+            var attributes = Utils.getFieldAttributes(Utils.getPropertyInfos<T>(new T(), true));
+
+            var pks = 0;
+            var ai = 0;
+            var pks_ai = 0;
+
+            foreach (var item in attributes)
+            {
+                if (item.IsAutoincrement)
+                {
+                    ai++;
+
+                    if (!item.isNumeric)
+                    {
+                        throw new Exception("Field " + item.FieldName + " is has AUTOINCREMENT attribute but not is numeric");
+                    }
+                }
+
+                if (item.IsPrimaryKey)
+                {
+                    pks++;
+                }
+
+                if (item.IsAutoincrement && item.IsPrimaryKey)
+                {
+                    pks_ai++;
+                }
+            }
+
+            if (ai > 1)
+            {
+                throw new Exception("The use of the AUTOINCREMENT attribute in more than one field is not allowed");
+            }
+
+            if ((pks_ai == 1) && (pks > 1))
+            {
+                throw new Exception("The use of the AUTOINCREMENT attribute in primary key field when exists primary key combined is not allowed");
+            }
+        }
     }
 }
