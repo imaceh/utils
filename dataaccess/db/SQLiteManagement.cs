@@ -74,13 +74,15 @@ namespace es.dmoreno.utils.dataaccess.db
                     }
                     sql += ")";
                 }
+
+                sql += await this.createUpdateConstraint<T>();
+
                 sql += ")";
 
                 await this.Statement.executeNonQueryAsync(sql);
             }
 
             //Check if fields exists
-            //foreach (PropertyInfo item in t.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             foreach(var item in Utils.getFieldAttributes(Utils.getPropertyInfos<T>(t, true)).Where(a => !a.IsPrimaryKey))
             {
                 //Check if exists
@@ -103,6 +105,8 @@ namespace es.dmoreno.utils.dataaccess.db
                     result = true;
                 }
             }
+
+            
 
             return result;
         }
@@ -224,6 +228,50 @@ namespace es.dmoreno.utils.dataaccess.db
             {
                 throw new Exception("The use of the AUTOINCREMENT attribute in primary key field when exists primary key combined is not allowed");
             }
+        }
+
+        private async Task<string> createUpdateConstraint<T>() where T: class, new()
+        {
+            var reg = new T();
+            var table_att = reg.GetType().GetTypeInfo().GetCustomAttribute<TableAttribute>();
+
+            //first get all constraints
+            var properties = Utils.getPropertyInfos<T>(reg, false);
+            var cons = Utils.getFieldConstraints(properties).ToList();
+
+            //agroup constraints by name
+            var cons_availables = cons.GroupBy(c => c.Name).ToList();
+
+            var sql = "";
+            foreach (var item in cons_availables)
+            {
+                sql += ", ";
+                if (item.ElementAt(0).Type == EConstraintType.ForeignKey)
+                {
+                    sql += " FOREIGN KEY (";
+                }
+                else
+                {
+                    sql += " UNIQUE KEY (";
+                }
+
+                var references = "";
+                for (int i = 0; i < item.Count(); i++)
+                {
+                    sql += item.ElementAt(i).FieldName;
+                    references += item.ElementAt(i).ReferencedField;
+
+                    if (i < (item.Count() - 1))
+                    {
+                        sql += ", ";
+                        references += ", ";
+                    }
+                }
+
+                sql += ") REFERENCES " + item.ElementAt(0).ReferencedTable + " (" + references + ")";
+            }
+
+            return sql;
         }
     }
 }

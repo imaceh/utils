@@ -90,5 +90,27 @@ namespace es.dmoreno.utils.dataaccess.db
 
             return result;
         }
+
+        static public List<ConstraintAttribute> getFieldConstraints(List<PropertyInfo> p)
+        {
+            var result = new List<ConstraintAttribute>();
+
+            foreach (var item in p)
+            {
+                var consts = item.GetCustomAttributes<ConstraintAttribute>();
+                var field_att = item.GetCustomAttribute<FieldAttribute>();
+
+                foreach (var cons in consts)
+                {
+                    if (field_att != null)
+                    {
+                        cons.FieldName = field_att.FieldName;
+                    }
+                    result.Add(cons);
+                }
+            }
+
+            return result;
+        }
     }
 }
