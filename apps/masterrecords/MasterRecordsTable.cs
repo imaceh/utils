@@ -38,11 +38,18 @@ namespace es.dmoreno.utils.apps.masterrecords
                 v = await db.Statement.firstAsync<T>(" AND key = @k", null, new List<StatementParameter>() {
                     new StatementParameter("@k", ParamType.String, key)
                 });
+            }
 
-                if (this._params.BeginTransaction)
-                {
-                    db.Statement.acceptTransaction();
-                }
+            return v;
+        }
+
+        public async Task<T> get(int id)
+        {
+            T v;
+
+            using (DataBaseLogic db = new DataBaseLogic(this._params))
+            {
+                v = await db.Statement.firstAsync<T>(" AND id = " + id.ToString());
             }
 
             return v;
