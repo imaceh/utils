@@ -1233,6 +1233,39 @@ namespace es.dmoreno.utils.dataaccess.db
             return result;
         }
 
+        public async Task<T> firstAsync<T>(string sql = "", string orderby = "", List<StatementParameter> parameters = null) where T : class, new()
+        {
+            ConfigStatement c;
+            T result;
+
+            if (sql == null)
+            {
+                sql = "";
+            }
+
+            await this.Semaphore.WaitAsync();
+            try
+            {
+                c = this.getConfigSelect(new T(), true);
+
+                if (parameters != null)
+                {
+                    this.addParameters(parameters);
+                }
+
+                using (SQLData d = await this.executeAsync(c.SELECT + " " + sql + " LIMIT 1"))
+                {
+                    result = d.fill<T>();
+                }
+            }
+            finally
+            {
+                this.Semaphore.Release();
+            }
+
+            return result;
+        }
+
         public bool insert(object registry)
         {
             return this.insertAsync(registry).Result;
