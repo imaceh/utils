@@ -497,6 +497,7 @@ namespace es.dmoreno.utils.dataaccess.db
                     t = SqliteType.Real;
                     break;
                 case ParamType.String:
+                case ParamType.LongString:
                     t = SqliteType.Text;
                     break;
                 case ParamType.Int16:
@@ -557,6 +558,7 @@ namespace es.dmoreno.utils.dataaccess.db
                     t = SqliteType.Real;
                     break;
                 case ParamType.String:
+                case ParamType.LongString:
                     t = SqliteType.Text;
                     break;
                 case ParamType.Int16:
@@ -1255,7 +1257,14 @@ namespace es.dmoreno.utils.dataaccess.db
 
                 using (SQLData d = await this.executeAsync(c.SELECT + " " + sql + " LIMIT 1"))
                 {
-                    result = d.fill<T>();
+                    if (d.next())
+                    {
+                        result = d.fill<T>();
+                    }
+                    else
+                    {
+                        result = null;
+                    }
                 }
             }
             finally
