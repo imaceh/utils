@@ -367,7 +367,7 @@ namespace es.dmoreno.utils.dataaccess.db
                         item.SetValue(registry, this.getInt32(att.FieldName));
                     }
                 }
-                else if (att.Type == ParamType.String)
+                else if (att.Type == ParamType.String || att.Type == ParamType.LongString)
                 {
                     if (att.AllowNull)
                     {

@@ -1020,7 +1020,14 @@ namespace es.dmoreno.utils.dataaccess.db
                     if (!att.IsPrimaryKey)
                     {
                         parameters.Add(new StatementParameter("@arg" + fields.Count, att.Type, value));
-                        fields.Add(table_att.Name + "." + att.FieldName);
+                        if (this.Type == DBMSType.SQLite)
+                        {
+                            fields.Add(att.FieldName);
+                        }
+                        else
+                        {
+                            fields.Add(table_att.Name + "." + att.FieldName);
+                        }
                     }
 
                     if (!att.AllowNull)
