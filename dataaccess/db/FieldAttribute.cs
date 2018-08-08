@@ -10,12 +10,12 @@ namespace es.dmoreno.utils.dataaccess.db
     public class FieldAttribute : Attribute
     {
         public string FieldName { get; set; }
-        public bool AllowNull { get; set; } = false;
+        public bool AllowNull { get; set; } = true;
         public bool IsPrimaryKey { get; set; } = false;
         public bool IsAutoincrement { get; set; } = false;
         public ParamType Type { get; set; }
         public int[] Size { get; set; }
-        public object DefaultValue { get; set; }
+        public object DefaultValue { get; set; } = null;
 
         public int NullValueForInt { get; set; } = int.MinValue;
 
