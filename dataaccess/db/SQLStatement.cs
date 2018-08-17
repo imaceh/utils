@@ -726,14 +726,18 @@ namespace es.dmoreno.utils.dataaccess.db
                     {
                         value = item.GetValue(registry);
 
-                        if (att.AllowNull)
+                        if (att.isInteger)
                         {
-                            if (att.isInteger)
+                            if (att.NullValueForInt == (int)value) //always will be NOT NULL because is a integer variable
                             {
-                                if (att.NullValueForInt == (int)value) //always will be NOT NULL because is a integer variable
-                                {
-                                    value = null;
-                                }
+                                value = DBNull.Value;
+                            }
+                        }
+                        else
+                        {
+                            if (value == null)
+                            {
+                                value = DBNull.Value;
                             }
                         }
 
@@ -743,7 +747,7 @@ namespace es.dmoreno.utils.dataaccess.db
 
                         if (!att.AllowNull)
                         {
-                            if (value == null)
+                            if (value == null || value == DBNull.Value)
                             {
                                 throw new Exception("Field '" + att.FieldName + "' not support NULL value");
                             }
@@ -800,7 +804,7 @@ namespace es.dmoreno.utils.dataaccess.db
                 {
                     value = item.GetValue(registry);
 
-                    if (value == null && !att.AllowNull)
+                    if (value == null)
                     {
                         value = att.DefaultValue;
                     }
@@ -808,14 +812,18 @@ namespace es.dmoreno.utils.dataaccess.db
                     if (!att.IsAutoincrement)
                     {
                         //Check if value por int represent NULL value
-                        if (att.AllowNull)
+                        if (att.isInteger)
                         {
-                            if (att.isInteger)
+                            if (att.NullValueForInt == (int)value) //always will be NOT NULL because is a integer variable
                             {
-                                if (att.NullValueForInt == (int)value) //always will be NOT NULL because is a integer variable
-                                {
-                                    value = null;
-                                }
+                                value = DBNull.Value;
+                            }
+                        }
+                        else
+                        {
+                            if (value == null)
+                            {
+                                value = DBNull.Value;
                             }
                         }
 
@@ -837,7 +845,7 @@ namespace es.dmoreno.utils.dataaccess.db
 
                     if (!att.AllowNull)
                     {
-                        if (value == null)
+                        if (value == null || value == DBNull.Value)
                         {
                             throw new Exception("Field '" + att.FieldName + "' not support NULL value");
                         }
@@ -911,7 +919,14 @@ namespace es.dmoreno.utils.dataaccess.db
                             {
                                 if (att.NullValueForInt == (int)value) //always will be NOT NULL because is a integer variable
                                 {
-                                    value = null;
+                                    value = DBNull.Value;
+                                }
+                            }
+                            else
+                            {
+                                if (value == null)
+                                {
+                                    value = DBNull.Value;
                                 }
                             }
 
@@ -921,7 +936,7 @@ namespace es.dmoreno.utils.dataaccess.db
 
                             if (!att.AllowNull)
                             {
-                                if (value == null)
+                                if (value == null || value == DBNull.Value)
                                 {
                                     throw new Exception("Field '" + att.FieldName + "' not support NULL value");
                                 }
@@ -1000,11 +1015,6 @@ namespace es.dmoreno.utils.dataaccess.db
                 {
                     value = item.GetValue(registry);
 
-                    if (value == null && !att.AllowNull)
-                    {
-                        value = att.DefaultValue;
-                    }
-
                     //Check if value por int represent NULL value
                     if (att.AllowNull)
                     {
@@ -1012,7 +1022,14 @@ namespace es.dmoreno.utils.dataaccess.db
                         {
                             if (att.NullValueForInt == (int)value) //always will be NOT NULL because is a integer variable
                             {
-                                value = null;
+                                value = DBNull.Value;
+                            }
+                        }
+                        else
+                        {
+                            if (value == DBNull.Value)
+                            {
+                                value = DBNull.Value;
                             }
                         }
                     }
@@ -1032,7 +1049,7 @@ namespace es.dmoreno.utils.dataaccess.db
 
                     if (!att.AllowNull)
                     {
-                        if (value == null)
+                        if (value == null || value == DBNull.Value)
                         {
                             throw new Exception("Field '" + att.FieldName + "' not support NULL value");
                         }
