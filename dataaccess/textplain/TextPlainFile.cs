@@ -31,31 +31,6 @@ namespace es.dmoreno.utils.dataaccess.textplain
             return result;
         }
 
-        //public async Task<string> getAsync()
-        //{
-        //    string txt;
-        //    string line;
-
-        //    if (this._fs == null)
-        //    {
-        //        throw new IOException("File " + this._filename + " is not open");
-        //    }
-
-        //    this._fs.Position = 0;
-
-        //    using (StreamReader sr = new StreamReader(this._fs))
-        //    {                
-        //        txt = "";
-
-        //        while ((line = await sr.ReadLineAsync()) != null)
-        //        {
-        //            txt += line;
-        //        }
-        //    }
-
-        //    return txt;
-        //}
-
         public string get()
         {
             string txt;
